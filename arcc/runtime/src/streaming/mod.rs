@@ -35,7 +35,7 @@ where
 }
 
 #[derive(Clone)]
-pub struct RequirePortRef<A, B, C>(Rc<RefCell<RequiredPort<B, C>>>)
+pub struct RequirePortRef<A, B, C>(pub Rc<RefCell<RequiredPort<B, C>>>)
 where
     A: 'static + ArconType,
     B: Port<Request = ArconElement<A>> + 'static + Clone,
