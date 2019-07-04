@@ -1,9 +1,9 @@
 use crate::data::{ArconElement, ArconType};
 use crate::error::*;
-use crate::prelude::{DeserializeOwned, Serialize};
 use crate::streaming::Channel;
 use kompact::{ActorPath, ActorRef, ComponentDefinition, Port, Require};
 use messages::protobuf::*;
+use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 use std::hash::Hash;
 

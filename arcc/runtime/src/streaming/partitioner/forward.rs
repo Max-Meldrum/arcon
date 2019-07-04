@@ -1,6 +1,6 @@
 use crate::data::{ArconElement, ArconType};
 use crate::error::*;
-use crate::prelude::{DeserializeOwned, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use crate::streaming::partitioner::{channel_output, Partitioner};
 use crate::streaming::Channel;
 use kompact::{ComponentDefinition, Port, Require};

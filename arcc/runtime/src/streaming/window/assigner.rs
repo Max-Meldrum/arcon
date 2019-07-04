@@ -1,5 +1,5 @@
 use crate::data::{ArconElement, ArconType};
-use crate::prelude::{DeserializeOwned, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use crate::streaming::partitioner::*;
 use crate::streaming::window::builder::WindowModules;
 use crate::streaming::window::component;

@@ -22,16 +22,34 @@ pub mod streaming;
 pub mod util;
 pub mod weld;
 
+pub mod arcon_macros {
+    pub use keyby::*;
+    pub use macros::*;
+    pub use crate::data::ArconType;
+}
+
 pub mod prelude {
+    pub use crate::streaming::partitioner::{
+        broadcast::Broadcast, forward::Forward, hash::HashPartitioner, Partitioner,
+    };
+    pub use crate::streaming::task::stateless::StreamTask;
+    pub use crate::streaming::window::{
+        assigner::EventTimeWindowAssigner, builder::WindowBuilder, builder::WindowModules,
+    };
+    pub use crate::streaming::{Channel, ChannelPort, RequirePortRef};
+
+    pub use crate::data::{ArconElement, ArconType};
+    pub use crate::weld::module::{Module, ModuleRun};
+
+    pub use kompact::default_components::*;
+    pub use kompact::*;
+    pub use slog::*;
+
     pub use futures::future;
     pub use futures::future::ok;
     pub use futures::prelude::*;
-    pub use kompact::default_components::*;
-    pub use kompact::*;
+
     pub use messages::protobuf::*;
-    pub use serde::de::DeserializeOwned;
-    pub use serde::{Deserialize, Serialize};
-    pub use slog::*;
     pub use state_backend::*;
 
 }
@@ -39,7 +57,7 @@ pub mod prelude {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prelude::*;
+    use crate::arcon_macros::*;
     use std::collections::hash_map::DefaultHasher;
 
     #[key_by(id)]

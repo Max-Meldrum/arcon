@@ -32,7 +32,6 @@ slog-term = "2.4"
 bincode = "1.1.4"
 serde = { version = "1.0.63", features = ["derive"] }
 
-
 # Optional 
 http = { path = "http", optional = true }
 kafka = { path = "kafka", optional = true }

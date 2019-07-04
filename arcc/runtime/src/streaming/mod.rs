@@ -1,6 +1,6 @@
 use crate::data::{ArconElement, ArconType};
-use crate::prelude::{DeserializeOwned, Serialize};
 use kompact::{ActorPath, ActorRef, ComponentDefinition, Port, Require, RequiredPort};
+use serde::{de::DeserializeOwned, Serialize};
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::hash::Hash;

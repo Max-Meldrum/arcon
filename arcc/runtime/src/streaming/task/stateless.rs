@@ -1,13 +1,12 @@
 use crate::data::{ArconElement, ArconType};
 use crate::error::*;
-use crate::prelude::{Deserialize, Serialize};
 use crate::streaming::partitioner::Partitioner;
 use crate::streaming::{Channel, ChannelPort};
 use crate::weld::*;
 use kompact::*;
 use messages::protobuf::StreamTaskMessage_oneof_payload::*;
 use messages::protobuf::*;
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::sync::Arc;

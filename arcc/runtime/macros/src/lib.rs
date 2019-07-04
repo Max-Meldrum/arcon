@@ -19,7 +19,7 @@ pub fn arcon(metadata: TokenStream, input: TokenStream) -> TokenStream {
                 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
                 #[repr(C)]
                 #item
-                impl crate::data::ArconType for #name {}
+                impl ArconType for #name {}
             }
         };
         proc_macro::TokenStream::from(output)

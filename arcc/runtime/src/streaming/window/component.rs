@@ -1,6 +1,6 @@
 use crate::data::{ArconElement, ArconType};
 use crate::error::*;
-use crate::prelude::{DeserializeOwned, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use crate::streaming::partitioner::Partitioner;
 use crate::streaming::window::assigner::*;
 use crate::streaming::window::builder::*;

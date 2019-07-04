@@ -1,11 +1,11 @@
 use crate::data::{ArconElement, ArconType};
 use crate::error::*;
-use crate::prelude::{DeserializeOwned, Serialize};
 use crate::streaming::partitioner::channel_output;
 use crate::streaming::partitioner::Partitioner;
 use crate::streaming::Channel;
 use kompact::{ComponentDefinition, Port, Require};
 use messages::protobuf::*;
+use serde::{de::DeserializeOwned, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::default::Default;
