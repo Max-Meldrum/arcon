@@ -15,6 +15,9 @@ extern crate http;
 #[cfg(feature = "kafka")]
 extern crate kafka;
 
+#[cfg(feature = "rdma")]
+pub mod rdma;
+
 #[macro_use]
 pub mod error;
 pub mod data;
@@ -23,9 +26,9 @@ pub mod util;
 pub mod weld;
 
 pub mod arcon_macros {
+    pub use crate::data::ArconType;
     pub use keyby::*;
     pub use macros::*;
-    pub use crate::data::ArconType;
 }
 
 pub mod prelude {
