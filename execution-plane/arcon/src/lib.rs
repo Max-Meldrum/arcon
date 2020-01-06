@@ -13,6 +13,7 @@ pub mod data;
 pub mod state_backend;
 pub mod streaming;
 pub mod util;
+pub mod task;
 
 pub mod macros {
     pub use crate::data::ArconType;

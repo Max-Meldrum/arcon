@@ -27,6 +27,7 @@ keyby = "0.2.0"
 rand = "0.6.5"
 fnv = "1.0.3"
 uuid = "0.8"
+futures-preview = "=0.3.0-alpha.17"
 
 # Logging
 slog = "2.2"
