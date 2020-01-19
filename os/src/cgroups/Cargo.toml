@@ -1,0 +1,10 @@
+[package]
+name = "cgroups"
+version = "0.1.0"
+authors = ["Max Meldrum <max@meldrum.se>"]
+description = "cgroups v2"
+edition = "2018"
+
+[dependencies]
+failure = "0.1.5"
+serde = { version = "1.0", features = ["derive"] }

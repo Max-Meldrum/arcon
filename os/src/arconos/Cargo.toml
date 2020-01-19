@@ -1,0 +1,27 @@
+[package]
+name = "arconos"
+version = "0.1.0"
+authors = ["Max Meldrum <mmeldrum@kth.se>"]
+edition = "2018"
+repository = "https://github.com/Max-Meldrum/dragonslayer"
+homepage = "https://github.com/Max-Meldrum/dragonslayer"
+description = "An Operating System for Data Analytics"
+
+[dependencies]
+spec = { path = "../spec" }
+manager = { path = "../manager" }
+lazy_static = "1.4.0"
+clap = "2.33.0"
+failure = "0.1.5"
+log = "0.4"
+pretty_env_logger = "0.3"
+prctl = "1.0.0"
+scopeguard = "^0.3.3"
+
+[target."cfg(unix)".dependencies]
+libc = ">=0.2.39"
+nix = "0.11.0"
+
+[target.'cfg(target_os= "linux")'.dependencies]
+seccomp = { path =  "../seccomp" }
+cgroups = { path =  "../cgroups" }

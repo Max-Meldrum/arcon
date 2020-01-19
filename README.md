@@ -19,10 +19,12 @@ Arcon is a streaming-first execution engine for the [Arc](https://github.com/cda
 * [`execution-plane`]: The execution plane provides a Rust-based distributed dataflow runtime that executes Arc applications.
 * [`operational-plane`]: The operational plane is responsible for the coordination of the distributed execution of an Arc application.
 * [`protobuf`]: Protobuf messages used between Arcon's operational and execution plane.
+* [`os`]: A user space operating system for the Arcon execution engine
 
 [`execution-plane`]: execution-plane
 [`operational-plane`]: operational-plane
 [`protobuf`]: protobuf
+[`os`]: os
 
 ## Related Projects
 

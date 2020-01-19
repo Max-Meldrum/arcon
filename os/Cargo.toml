@@ -1,0 +1,10 @@
+[workspace]
+members = [
+  "src/arconos",
+]
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = 'abort'
+opt-level = 'z'  # Optimize for size.

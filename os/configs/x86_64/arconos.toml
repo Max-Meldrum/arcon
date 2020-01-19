@@ -1,0 +1,15 @@
+# This is an example of a Arconos specification for a x86_64 image
+
+id = "arconos_x86_64"
+
+[cgroups]
+path = "/sys/fs/cgroup"
+
+[shell]
+cmd = "sh"
+path = "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+term = "xterm"
+
+[resources]
+vcpu = 4
+mem = 1024

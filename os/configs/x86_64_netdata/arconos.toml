@@ -1,0 +1,19 @@
+# This is an example of a Arconos specification for a x86_64_netdata image
+
+id = "arconos_x86_64_netdata"
+
+[cgroups]
+path = "/sys/fs/cgroup"
+
+[shell]
+cmd = "sh"
+path = "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+term = "xterm"
+
+[metrics]
+path = "/usr/sbin/netdata"
+args = "-c /etc/netdata/netdata.conf -u netdata -s /host -i 0.0.0.0 -p 19999"
+
+[resources]
+vcpu = 4
+mem = 1024
