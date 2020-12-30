@@ -1,0 +1,431 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js ayu">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>State Management - The Arcon User Guide</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A User Guide for Arcon.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="../fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "ayu";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../foreword.html">Foreword</a></li><li class="chapter-item expanded affix "><a href="../getting-started.html">Getting Started</a></li><li class="chapter-item expanded "><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../introduction/architecture.html"><strong aria-hidden="true">1.1.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../introduction/data_format.html"><strong aria-hidden="true">1.2.</strong> Data Format</a></li><li class="chapter-item expanded "><a href="../introduction/state.html" class="active"><strong aria-hidden="true">1.3.</strong> State Management</a></li><li class="chapter-item expanded "><a href="../introduction/operators.html"><strong aria-hidden="true">1.4.</strong> Operators</a></li></ol></li><li class="chapter-item expanded "><a href="../pipeline/index.html"><strong aria-hidden="true">2.</strong> Pipeline</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pipeline/configuration.html"><strong aria-hidden="true">2.1.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../pipeline/source.html"><strong aria-hidden="true">2.2.</strong> Sources</a></li><li class="chapter-item expanded "><a href="../pipeline/stream.html"><strong aria-hidden="true">2.3.</strong> Stream API</a></li><li class="chapter-item expanded "><a href="../pipeline/backends.html"><strong aria-hidden="true">2.4.</strong> State Backends</a></li><li class="chapter-item expanded "><a href="../pipeline/indexes.html"><strong aria-hidden="true">2.5.</strong> State Indexes</a></li><li class="chapter-item expanded "><a href="../pipeline/state.html"><strong aria-hidden="true">2.6.</strong> State Access</a></li></ol></li><li class="chapter-item expanded "><a href="../project_info.html"><strong aria-hidden="true">3.</strong> Project Info</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu (default)</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">The Arcon User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        <a href="https://github.com/cda-group/arcon" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#state-management" id="state-management">State Management</a></h1>
+<p>In this section, we will cover how Arcon approaches state.</p>
+<p>Arcon makes a clear separation between active and historical state. Active state is maintained in in-memory indexes, while cold state is pushed down to a durable state backend. Other streaming systems commonly operate directly on the latter (e.g., RocksDB). This has several drawbacks. Typically the state backends are general-purpose key-value stores and are thus not specialised for streaming workloads. 
+The state access pattern is not considered at all. Secondly, state calls have to serialise/deserialise for each operation.</p>
+<p>Similarly to other streaming systems, Arcon operates on epoch boundaries. 
+Therefore it is only necessary to persist modified state prior to running the epoch snapshotting protocol. 
+Deserialisation in Protobuf (Arcon’s data format) compared to serialisation is costly.
+Which is why Arcon favours serialisation overhead over its deserialisation counterpart and thus state in Arcon is lazy by default.</p>
+<p>As implementing a custom state backend specialised for streaming would require a huge engineering effort, Arcon adds the
+<strong>Active State</strong> layer above existing state backends (See image below). The idea is to use the state backends for what they are good at, that is,
+storing state efficiently on disk and checkpointing.</p>
+<p><img src="arcon_state_layer.PNG" alt="" /></p>
+<p>However, for some workloads it may make sense to directly use the underlying state backend. 
+Arcon provides an <strong>eager</strong> version of all active state indexes. So for example,
+<code>Map</code> is by default lazy while <code>EagerMap</code> operates directly on the state backend. If your map workload is
+mostly writes and not much reads, then using the latter would be more suitable.</p>
+<p>Arcon enables users to configure different state backends for different stages of the dataflow graph. For write-heavy workloads,
+users may want to use <code>RocksDB</code> (LSM) as the state backend. Whereas for read-heavy workloads, <code>Sled</code> may be a better fit.</p>
+<h2><a class="header" href="#declaring-arcon-state" id="declaring-arcon-state">Declaring Arcon State</a></h2>
+<p>State in Arcon must implement the trait <code>ArconState</code>. The simpliest way 
+to acheive this is to use the provided derive macro.</p>
+<p>Let’s say that we would want to store our <code>Event</code> records
+in an <code>Appender</code> index.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::prelude::*;
+</span><span class="boring">use examples::SnapshotComponent;
+</span><span class="boring">use std::{path::Path, sync::Arc};
+</span><span class="boring">
+</span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
+</span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
+</span>#[derive(Arcon, prost::Message, Copy, Clone)]
+#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+pub struct Event {
+    #[prost(uint64, tag = &quot;1&quot;)]
+    pub id: u64,
+}
+<span class="boring">
+</span><span class="boring">#[derive(ArconState)]
+</span><span class="boring">pub struct MyState&lt;B: Backend&gt; {
+</span><span class="boring">    events: Appender&lt;Event, B&gt;,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">impl&lt;B: Backend&gt; MyState&lt;B&gt; {
+</span><span class="boring">    pub fn new(backend: Arc&lt;B&gt;) -&gt; Self {
+</span><span class="boring">        let mut events_handle = Handle::vec(&quot;_events&quot;);
+</span><span class="boring">        backend.register_vec_handle(&amp;mut events_handle);
+</span><span class="boring">
+</span><span class="boring">        MyState {
+</span><span class="boring">            events: Appender::new(events_handle.activate(backend)),
+</span><span class="boring">        }
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">
+</span><span class="boring">impl&lt;B: Backend&gt; From&lt;Snapshot&gt; for MyState&lt;B&gt; {
+</span><span class="boring">    fn from(snapshot: Snapshot) -&gt; Self {
+</span><span class="boring">        let snapshot_dir = Path::new(&amp;snapshot.snapshot_path);
+</span><span class="boring">        let backend = Arc::new(B::restore(&amp;snapshot_dir, &amp;snapshot_dir).unwrap());
+</span><span class="boring">        MyState::new(backend)
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let conf = ArconConf {
+</span><span class="boring">        epoch_interval: 10000,
+</span><span class="boring">        ..Default::default()
+</span><span class="boring">    };
+</span><span class="boring">
+</span><span class="boring">    let mut pipeline = Pipeline::with_conf(conf)
+</span><span class="boring">        .collection(
+</span><span class="boring">            (0..10000000)
+</span><span class="boring">                .map(|x| Event { id: x })
+</span><span class="boring">                .collect::&lt;Vec&lt;Event&gt;&gt;(),
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_timestamp_extractor(|x: &amp;Event| x.id);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .filter(|event| event.id &gt; 50)
+</span><span class="boring">        .map_with_state(
+</span><span class="boring">            |x, state: &amp;mut MyState&lt;Sled&gt;| {
+</span><span class="boring">                state.events().append(x)?;
+</span><span class="boring">                Ok(x)
+</span><span class="boring">            },
+</span><span class="boring">            MyState::new,
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_state_id(&quot;map_state_one&quot;);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .build();
+</span><span class="boring">
+</span><span class="boring">    pipeline.watch(&quot;map_state_one&quot;, |epoch, mut s: MyState&lt;Sled&gt;| {
+</span><span class="boring">        let events_len = s.events().len();
+</span><span class="boring">        println!(&quot;Events Length {:?} for Epoch {}&quot;, events_len, epoch);
+</span><span class="boring">    });
+</span><span class="boring">
+</span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
+</span><span class="boring">    // Create Kompact component to receive snapshots
+</span><span class="boring">    let snapshot_comp = kompact_system.create(SnapshotComponent::new);
+</span><span class="boring">
+</span><span class="boring">    kompact_system
+</span><span class="boring">        .start_notify(&amp;snapshot_comp)
+</span><span class="boring">        .wait_timeout(std::time::Duration::from_millis(200))
+</span><span class="boring">        .expect(&quot;Failed to start component&quot;);
+</span><span class="boring">
+</span><span class="boring">    pipeline.watch_with(&quot;map_state_one&quot;, snapshot_comp);
+</span><span class="boring">
+</span><span class="boring">    pipeline.start();
+</span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">}
+</span></code></pre>
+<p>We then create our custom state object <code>MyState</code> and add the
+state indexes as fields. Do note that the <code>ArconState</code> derive macro
+will require each field to be an Arcon implemented index. However if you
+want to access some non-durable field, then you may add the <code>#[ephemeral]</code> flag
+above the field.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::prelude::*;
+</span><span class="boring">use examples::SnapshotComponent;
+</span><span class="boring">use std::{path::Path, sync::Arc};
+</span><span class="boring">
+</span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
+</span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
+</span><span class="boring">#[derive(Arcon, prost::Message, Copy, Clone)]
+</span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+</span><span class="boring">pub struct Event {
+</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    pub id: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span>#[derive(ArconState)]
+pub struct MyState&lt;B: Backend&gt; {
+    events: Appender&lt;Event, B&gt;,
+}
+
+impl&lt;B: Backend&gt; MyState&lt;B&gt; {
+    pub fn new(backend: Arc&lt;B&gt;) -&gt; Self {
+        let mut events_handle = Handle::vec(&quot;_events&quot;);
+        backend.register_vec_handle(&amp;mut events_handle);
+
+        MyState {
+            events: Appender::new(events_handle.activate(backend)),
+        }
+    }
+}
+
+<span class="boring">
+</span><span class="boring">impl&lt;B: Backend&gt; From&lt;Snapshot&gt; for MyState&lt;B&gt; {
+</span><span class="boring">    fn from(snapshot: Snapshot) -&gt; Self {
+</span><span class="boring">        let snapshot_dir = Path::new(&amp;snapshot.snapshot_path);
+</span><span class="boring">        let backend = Arc::new(B::restore(&amp;snapshot_dir, &amp;snapshot_dir).unwrap());
+</span><span class="boring">        MyState::new(backend)
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let conf = ArconConf {
+</span><span class="boring">        epoch_interval: 10000,
+</span><span class="boring">        ..Default::default()
+</span><span class="boring">    };
+</span><span class="boring">
+</span><span class="boring">    let mut pipeline = Pipeline::with_conf(conf)
+</span><span class="boring">        .collection(
+</span><span class="boring">            (0..10000000)
+</span><span class="boring">                .map(|x| Event { id: x })
+</span><span class="boring">                .collect::&lt;Vec&lt;Event&gt;&gt;(),
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_timestamp_extractor(|x: &amp;Event| x.id);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .filter(|event| event.id &gt; 50)
+</span><span class="boring">        .map_with_state(
+</span><span class="boring">            |x, state: &amp;mut MyState&lt;Sled&gt;| {
+</span><span class="boring">                state.events().append(x)?;
+</span><span class="boring">                Ok(x)
+</span><span class="boring">            },
+</span><span class="boring">            MyState::new,
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_state_id(&quot;map_state_one&quot;);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .build();
+</span><span class="boring">
+</span><span class="boring">    pipeline.watch(&quot;map_state_one&quot;, |epoch, mut s: MyState&lt;Sled&gt;| {
+</span><span class="boring">        let events_len = s.events().len();
+</span><span class="boring">        println!(&quot;Events Length {:?} for Epoch {}&quot;, events_len, epoch);
+</span><span class="boring">    });
+</span><span class="boring">
+</span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
+</span><span class="boring">    // Create Kompact component to receive snapshots
+</span><span class="boring">    let snapshot_comp = kompact_system.create(SnapshotComponent::new);
+</span><span class="boring">
+</span><span class="boring">    kompact_system
+</span><span class="boring">        .start_notify(&amp;snapshot_comp)
+</span><span class="boring">        .wait_timeout(std::time::Duration::from_millis(200))
+</span><span class="boring">        .expect(&quot;Failed to start component&quot;);
+</span><span class="boring">
+</span><span class="boring">    pipeline.watch_with(&quot;map_state_one&quot;, snapshot_comp);
+</span><span class="boring">
+</span><span class="boring">    pipeline.start();
+</span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">}
+</span></code></pre>
+<p>Examples of more state indexes can be found <a href="../pipeline/indexes.html">here</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../introduction/data_format.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../introduction/operators.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="../introduction/data_format.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a rel="next" href="../introduction/operators.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

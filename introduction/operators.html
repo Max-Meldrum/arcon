@@ -1,0 +1,658 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js ayu">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Operators - The Arcon User Guide</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A User Guide for Arcon.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="../fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "ayu";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../foreword.html">Foreword</a></li><li class="chapter-item expanded affix "><a href="../getting-started.html">Getting Started</a></li><li class="chapter-item expanded "><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../introduction/architecture.html"><strong aria-hidden="true">1.1.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../introduction/data_format.html"><strong aria-hidden="true">1.2.</strong> Data Format</a></li><li class="chapter-item expanded "><a href="../introduction/state.html"><strong aria-hidden="true">1.3.</strong> State Management</a></li><li class="chapter-item expanded "><a href="../introduction/operators.html" class="active"><strong aria-hidden="true">1.4.</strong> Operators</a></li></ol></li><li class="chapter-item expanded "><a href="../pipeline/index.html"><strong aria-hidden="true">2.</strong> Pipeline</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pipeline/configuration.html"><strong aria-hidden="true">2.1.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../pipeline/source.html"><strong aria-hidden="true">2.2.</strong> Sources</a></li><li class="chapter-item expanded "><a href="../pipeline/stream.html"><strong aria-hidden="true">2.3.</strong> Stream API</a></li><li class="chapter-item expanded "><a href="../pipeline/backends.html"><strong aria-hidden="true">2.4.</strong> State Backends</a></li><li class="chapter-item expanded "><a href="../pipeline/indexes.html"><strong aria-hidden="true">2.5.</strong> State Indexes</a></li><li class="chapter-item expanded "><a href="../pipeline/state.html"><strong aria-hidden="true">2.6.</strong> State Access</a></li></ol></li><li class="chapter-item expanded "><a href="../project_info.html"><strong aria-hidden="true">3.</strong> Project Info</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu (default)</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">The Arcon User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        <a href="https://github.com/cda-group/arcon" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#operators" id="operators">Operators</a></h1>
+<p>A streaming operator takes data and executes some form of transformation before
+sending it downstream to other operators as part of a larger dataflow graph.</p>
+<p>Arcon provides a set of pre-defined operators such as map, filter, and flatmap. However, it is also
+possible to implement your own Operator.</p>
+<p>An <code>Operator</code> has 4 associated types:</p>
+<ul>
+<li><code>IN</code> The type data flowing into the operator</li>
+<li><code>OUT</code> The output type of the executed transformation</li>
+<li><code>TimerState</code> If a timer is used, one may specify a type of timer state.</li>
+<li><code>OperatorState</code> Custom defined user state that is of type ArconState.</li>
+</ul>
+<p>and 3 required methods to implement:</p>
+<ul>
+<li><code>handle_element</code> This method is called on each new streaming record that comes</li>
+<li><code>handle_timeout</code> This method handles custom triggered timers that have been scheduled through the <code>OperatorContext</code></li>
+<li><code>handle_persist</code> This method defines how custom defined OperatorState shall be persisted.</li>
+</ul>
+<p>If you do not care about dealing with timers or handling state, you may simply ignore these
+methods by using the <code>ignore_timeout!()</code> and <code>ignore_persist!()</code> macros that add empty implementations.</p>
+<p>Both <code>handle_element</code> and <code>handle_timeout</code> has access to an <code>OperatorContext</code>. From this context, you may
+output events, schedule timers, and also perform some logging.</p>
+<h2><a class="header" href="#creating-an-operator" id="creating-an-operator">Creating an Operator</a></h2>
+<p>To showcase the Operator interface, we will now create two custom Operators. One that is very basic and
+another that uses the timer facilities.</p>
+<p>Down below we have created an Operator called <code>MyOperator</code>, it receives u64s and outputs a CustomEvent.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::{ignore_persist, ignore_timeout, prelude::*};
+</span><span class="boring">use std::sync::Arc;
+</span><span class="boring">
+</span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
+</span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
+</span><span class="boring">#[derive(Arcon, prost::Message, Copy, Clone)]
+</span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+</span><span class="boring">pub struct CustomEvent {
+</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    pub id: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span>pub struct MyOperator;
+
+impl Operator for MyOperator {
+    type IN = u64;
+    type OUT = CustomEvent;
+    type TimerState = ArconNever;
+    type OperatorState = ();
+
+    fn handle_element(
+        &amp;mut self,
+        element: ArconElement&lt;Self::IN&gt;,
+        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+    ) -&gt; OperatorResult&lt;()&gt; {
+        let custom_event = CustomEvent { id: element.data };
+
+        ctx.output(ArconElement {
+            data: custom_event,
+            timestamp: element.timestamp,
+        });
+
+        Ok(())
+    }
+    ignore_timeout!();
+    ignore_persist!();
+}
+<span class="boring">
+</span><span class="boring">pub struct TimerOperator;
+</span><span class="boring">
+</span><span class="boring">impl Operator for TimerOperator {
+</span><span class="boring">    type IN = CustomEvent;
+</span><span class="boring">    type OUT = CustomEvent;
+</span><span class="boring">    type TimerState = u64;
+</span><span class="boring">    type OperatorState = ();
+</span><span class="boring">
+</span><span class="boring">    fn handle_element(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
+</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        let current_time = ctx.current_time();
+</span><span class="boring">        let key = element.data.get_key();
+</span><span class="boring">        let time = current_time + 1000;
+</span><span class="boring">
+</span><span class="boring">        if let Err(err) = ctx.schedule_at(key, time, element.data.id) {
+</span><span class="boring">            error!(ctx.log(), &quot;Failed to schedule timer with err {}&quot;, err);
+</span><span class="boring">        }
+</span><span class="boring">
+</span><span class="boring">        ctx.output(element);
+</span><span class="boring">
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    fn handle_timeout(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        timeout: Self::TimerState,
+</span><span class="boring">        ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        info!(ctx.log(), &quot;Got a timer timeout for {:?}&quot;, timeout);
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    ignore_persist!();
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let mut pipeline = Pipeline::default()
+</span><span class="boring">        .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
+</span><span class="boring">            conf.set_timestamp_extractor(|x: &amp;u64| *x);
+</span><span class="boring">        })
+</span><span class="boring">        .operator(
+</span><span class="boring">            |_: Arc&lt;Sled&gt;| MyOperator,
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_state_id(&quot;MyOperator&quot;);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .operator(
+</span><span class="boring">            |_: Arc&lt;Sled&gt;| TimerOperator,
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_state_id(&quot;TimerOperator&quot;);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .build();
+</span><span class="boring">
+</span><span class="boring">    pipeline.start();
+</span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">}
+</span></code></pre>
+<p>For context, this is how the CustomEvent struct looks like.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::{ignore_persist, ignore_timeout, prelude::*};
+</span><span class="boring">use std::sync::Arc;
+</span><span class="boring">
+</span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
+</span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
+</span>#[derive(Arcon, prost::Message, Copy, Clone)]
+#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+pub struct CustomEvent {
+    #[prost(uint64, tag = &quot;1&quot;)]
+    pub id: u64,
+}
+<span class="boring">
+</span><span class="boring">pub struct MyOperator;
+</span><span class="boring">
+</span><span class="boring">impl Operator for MyOperator {
+</span><span class="boring">    type IN = u64;
+</span><span class="boring">    type OUT = CustomEvent;
+</span><span class="boring">    type TimerState = ArconNever;
+</span><span class="boring">    type OperatorState = ();
+</span><span class="boring">
+</span><span class="boring">    fn handle_element(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
+</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        let custom_event = CustomEvent { id: element.data };
+</span><span class="boring">
+</span><span class="boring">        ctx.output(ArconElement {
+</span><span class="boring">            data: custom_event,
+</span><span class="boring">            timestamp: element.timestamp,
+</span><span class="boring">        });
+</span><span class="boring">
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">    ignore_timeout!();
+</span><span class="boring">    ignore_persist!();
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">pub struct TimerOperator;
+</span><span class="boring">
+</span><span class="boring">impl Operator for TimerOperator {
+</span><span class="boring">    type IN = CustomEvent;
+</span><span class="boring">    type OUT = CustomEvent;
+</span><span class="boring">    type TimerState = u64;
+</span><span class="boring">    type OperatorState = ();
+</span><span class="boring">
+</span><span class="boring">    fn handle_element(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
+</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        let current_time = ctx.current_time();
+</span><span class="boring">        let key = element.data.get_key();
+</span><span class="boring">        let time = current_time + 1000;
+</span><span class="boring">
+</span><span class="boring">        if let Err(err) = ctx.schedule_at(key, time, element.data.id) {
+</span><span class="boring">            error!(ctx.log(), &quot;Failed to schedule timer with err {}&quot;, err);
+</span><span class="boring">        }
+</span><span class="boring">
+</span><span class="boring">        ctx.output(element);
+</span><span class="boring">
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    fn handle_timeout(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        timeout: Self::TimerState,
+</span><span class="boring">        ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        info!(ctx.log(), &quot;Got a timer timeout for {:?}&quot;, timeout);
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    ignore_persist!();
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let mut pipeline = Pipeline::default()
+</span><span class="boring">        .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
+</span><span class="boring">            conf.set_timestamp_extractor(|x: &amp;u64| *x);
+</span><span class="boring">        })
+</span><span class="boring">        .operator(
+</span><span class="boring">            |_: Arc&lt;Sled&gt;| MyOperator,
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_state_id(&quot;MyOperator&quot;);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .operator(
+</span><span class="boring">            |_: Arc&lt;Sled&gt;| TimerOperator,
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_state_id(&quot;TimerOperator&quot;);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .build();
+</span><span class="boring">
+</span><span class="boring">    pipeline.start();
+</span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">}
+</span></code></pre>
+<p>We then create another Operator called <code>TimerOperator</code> that receives CustomEvent’s and
+schedules a timer event of u64 in the future when the event time reaches <code>current_time + 1000</code>.
+The timer event is scheduled based on the key of the ArconType. Only one timer event can exist 
+per key.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::{ignore_persist, ignore_timeout, prelude::*};
+</span><span class="boring">use std::sync::Arc;
+</span><span class="boring">
+</span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
+</span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
+</span><span class="boring">#[derive(Arcon, prost::Message, Copy, Clone)]
+</span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+</span><span class="boring">pub struct CustomEvent {
+</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    pub id: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">pub struct MyOperator;
+</span><span class="boring">
+</span><span class="boring">impl Operator for MyOperator {
+</span><span class="boring">    type IN = u64;
+</span><span class="boring">    type OUT = CustomEvent;
+</span><span class="boring">    type TimerState = ArconNever;
+</span><span class="boring">    type OperatorState = ();
+</span><span class="boring">
+</span><span class="boring">    fn handle_element(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
+</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        let custom_event = CustomEvent { id: element.data };
+</span><span class="boring">
+</span><span class="boring">        ctx.output(ArconElement {
+</span><span class="boring">            data: custom_event,
+</span><span class="boring">            timestamp: element.timestamp,
+</span><span class="boring">        });
+</span><span class="boring">
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">    ignore_timeout!();
+</span><span class="boring">    ignore_persist!();
+</span><span class="boring">}
+</span><span class="boring">
+</span>pub struct TimerOperator;
+
+impl Operator for TimerOperator {
+    type IN = CustomEvent;
+    type OUT = CustomEvent;
+    type TimerState = u64;
+    type OperatorState = ();
+
+    fn handle_element(
+        &amp;mut self,
+        element: ArconElement&lt;Self::IN&gt;,
+        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+    ) -&gt; OperatorResult&lt;()&gt; {
+        let current_time = ctx.current_time();
+        let key = element.data.get_key();
+        let time = current_time + 1000;
+
+        if let Err(err) = ctx.schedule_at(key, time, element.data.id) {
+            error!(ctx.log(), &quot;Failed to schedule timer with err {}&quot;, err);
+        }
+
+        ctx.output(element);
+
+        Ok(())
+    }
+
+    fn handle_timeout(
+        &amp;mut self,
+        timeout: Self::TimerState,
+        ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+    ) -&gt; OperatorResult&lt;()&gt; {
+        info!(ctx.log(), &quot;Got a timer timeout for {:?}&quot;, timeout);
+        Ok(())
+    }
+
+    ignore_persist!();
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let mut pipeline = Pipeline::default()
+</span><span class="boring">        .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
+</span><span class="boring">            conf.set_timestamp_extractor(|x: &amp;u64| *x);
+</span><span class="boring">        })
+</span><span class="boring">        .operator(
+</span><span class="boring">            |_: Arc&lt;Sled&gt;| MyOperator,
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_state_id(&quot;MyOperator&quot;);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .operator(
+</span><span class="boring">            |_: Arc&lt;Sled&gt;| TimerOperator,
+</span><span class="boring">            |conf| {
+</span><span class="boring">                conf.set_state_id(&quot;TimerOperator&quot;);
+</span><span class="boring">            },
+</span><span class="boring">        )
+</span><span class="boring">        .build();
+</span><span class="boring">
+</span><span class="boring">    pipeline.start();
+</span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">}
+</span></code></pre>
+<p>Finally, we create a simple Pipeline to that uses our custom operators.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::{ignore_persist, ignore_timeout, prelude::*};
+</span><span class="boring">use std::sync::Arc;
+</span><span class="boring">
+</span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
+</span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
+</span><span class="boring">#[derive(Arcon, prost::Message, Copy, Clone)]
+</span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+</span><span class="boring">pub struct CustomEvent {
+</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    pub id: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">pub struct MyOperator;
+</span><span class="boring">
+</span><span class="boring">impl Operator for MyOperator {
+</span><span class="boring">    type IN = u64;
+</span><span class="boring">    type OUT = CustomEvent;
+</span><span class="boring">    type TimerState = ArconNever;
+</span><span class="boring">    type OperatorState = ();
+</span><span class="boring">
+</span><span class="boring">    fn handle_element(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
+</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        let custom_event = CustomEvent { id: element.data };
+</span><span class="boring">
+</span><span class="boring">        ctx.output(ArconElement {
+</span><span class="boring">            data: custom_event,
+</span><span class="boring">            timestamp: element.timestamp,
+</span><span class="boring">        });
+</span><span class="boring">
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">    ignore_timeout!();
+</span><span class="boring">    ignore_persist!();
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">pub struct TimerOperator;
+</span><span class="boring">
+</span><span class="boring">impl Operator for TimerOperator {
+</span><span class="boring">    type IN = CustomEvent;
+</span><span class="boring">    type OUT = CustomEvent;
+</span><span class="boring">    type TimerState = u64;
+</span><span class="boring">    type OperatorState = ();
+</span><span class="boring">
+</span><span class="boring">    fn handle_element(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
+</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        let current_time = ctx.current_time();
+</span><span class="boring">        let key = element.data.get_key();
+</span><span class="boring">        let time = current_time + 1000;
+</span><span class="boring">
+</span><span class="boring">        if let Err(err) = ctx.schedule_at(key, time, element.data.id) {
+</span><span class="boring">            error!(ctx.log(), &quot;Failed to schedule timer with err {}&quot;, err);
+</span><span class="boring">        }
+</span><span class="boring">
+</span><span class="boring">        ctx.output(element);
+</span><span class="boring">
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    fn handle_timeout(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        timeout: Self::TimerState,
+</span><span class="boring">        ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        info!(ctx.log(), &quot;Got a timer timeout for {:?}&quot;, timeout);
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    ignore_persist!();
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span>    let mut pipeline = Pipeline::default()
+        .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
+            conf.set_timestamp_extractor(|x: &amp;u64| *x);
+        })
+        .operator(
+            |_: Arc&lt;Sled&gt;| MyOperator,
+            |conf| {
+                conf.set_state_id(&quot;MyOperator&quot;);
+            },
+        )
+        .operator(
+            |_: Arc&lt;Sled&gt;| TimerOperator,
+            |conf| {
+                conf.set_state_id(&quot;TimerOperator&quot;);
+            },
+        )
+        .build();
+<span class="boring">
+</span><span class="boring">    pipeline.start();
+</span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">}
+</span></code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../introduction/state.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../pipeline/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="../introduction/state.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a rel="next" href="../pipeline/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
