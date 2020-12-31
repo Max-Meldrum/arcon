@@ -24,7 +24,7 @@ pub fn arcon_state(input: TokenStream) -> TokenStream {
                     match meta {
                         syn::Meta::Path(ref path) if path.get_ident().unwrap() == "ephemeral" => {
                             idents.push((field.ident.clone(), &field.ty));
-                            ephemerals.push((field.ident.clone(), &field.ty));
+                            ephemerals.push(field.ident.clone());
                             ephemeral = true;
                         }
                         _ => (),
@@ -44,7 +44,7 @@ pub fn arcon_state(input: TokenStream) -> TokenStream {
             let ty = &data.1;
 
             // add only non-ephemeral fields
-            if !ephemerals.contains(&(data)) {
+            if !ephemerals.contains(&(ident)) {
                 let field_gen = quote! { self.#ident.persist()?; };
                 persist_quotes.push(field_gen);
             }

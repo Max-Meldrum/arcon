@@ -1,6 +1,6 @@
 [package]
 name = "arcon"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Max Meldrum <mmeldrum@kth.se>"]
 edition = "2018"
 readme = "README.md"
@@ -38,10 +38,10 @@ metrics = []
 rocksdb = ["arcon_state/rocks"]
 
 [dependencies]
-arcon_macros = { version = "0.1", path = "arcon_macros" }
-arcon_error = { version = "0.1", path = "arcon_error" }
-arcon_state = { version = "0.1", path = "arcon_state" }
-arcon_allocator = { version = "0.1", path = "arcon_allocator" }
+arcon_macros = { version = "0.2", path = "arcon_macros" }
+arcon_error = { version = "0.2", path = "arcon_error" }
+arcon_state = { version = "0.2", path = "arcon_state" }
+arcon_allocator = { version = "0.2", path = "arcon_allocator" }
 
 kompact = { git = "https://github.com/kompics/kompact.git", branch = "master", features = ["type_erasure"] }
 uuid = "0.8"

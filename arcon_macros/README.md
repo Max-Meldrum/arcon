@@ -1,5 +1,5 @@
 ![ci](https://github.com/cda-group/arcon/workflows/ci/badge.svg)
-[![Cargo](https://img.shields.io/badge/crates.io-v0.1.3-orange)](https://crates.io/crates/arcon_macros)
+[![Cargo](https://img.shields.io/badge/crates.io-v0.2.0-orange)](https://crates.io/crates/arcon_macros)
 [![License](https://img.shields.io/badge/License-AGPL--3.0--only-blue)](https://github.com/cda-group/arcon)
 
 # arcon macros

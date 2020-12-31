@@ -1,6 +1,6 @@
 [package]
 name = "arcon_state"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Mikołaj Robakowski <mikolajr@kth.se>, Max Meldrum <mmeldrum@kth.se>"]
 edition = "2018"
 readme = "README.md"
@@ -18,7 +18,7 @@ rocks = ["rocksdb"]
 sled_checkpoints = ["sled"]
 
 [dependencies]
-arcon_state_derive = { version = "0.1", path = "arcon_state_derive", optional = true }
+arcon_state_derive = { version = "0.2", path = "arcon_state_derive", optional = true }
 prost = { git = "https://github.com/danburkert/prost.git" }
 bytes = "0.6"
 snafu = "0.6"

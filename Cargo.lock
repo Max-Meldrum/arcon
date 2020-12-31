@@ -64,7 +64,7 @@ checksum = "4d25d88fd6b8041580a654f9d0c581a047baee2b3efee13275f2fc392fc75034"
 
 [[package]]
 name = "arcon"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "abomonation",
  "abomonation_derive",
@@ -100,28 +100,28 @@ dependencies = [
 
 [[package]]
 name = "arcon_allocator"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "fxhash",
 ]
 
 [[package]]
 name = "arcon_build"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "prost-build",
 ]
 
 [[package]]
 name = "arcon_error"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "arcon_state",
 ]
 
 [[package]]
 name = "arcon_macros"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -130,7 +130,7 @@ dependencies = [
 
 [[package]]
 name = "arcon_state"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "arcon_state_derive",
  "bytes 0.6.0",
@@ -152,7 +152,7 @@ dependencies = [
 
 [[package]]
 name = "arcon_state_derive"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -161,7 +161,7 @@ dependencies = [
 
 [[package]]
 name = "arcon_tests"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "abomonation",
  "abomonation_derive",

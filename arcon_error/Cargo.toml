@@ -1,6 +1,6 @@
 [package]
 name = "arcon_error"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Max Meldrum <mmeldrum@kth.se>"]
 edition = "2018"
 readme = "README.md"
@@ -12,4 +12,4 @@ Arcon's common error utilities
 """
 
 [dependencies]
-arcon_state = { version = "0.1", path = "../arcon_state" }
+arcon_state = { version = "0.2", path = "../arcon_state" }

@@ -1,8 +1,13 @@
 [package]
 name = "arcon_build"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Max Meldrum <mmeldrum@kth.se>"]
 edition = "2018"
+readme = "README.md"
+license = "AGPL-3.0-only"
+description = """
+Protobuf builder for arcon
+"""
 
 [features]
 arcon_serde = []
