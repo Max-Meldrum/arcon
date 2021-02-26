@@ -197,7 +197,8 @@ another that uses the timer facilities.</p>
 </span><span class="boring">    pub id: u64,
 </span><span class="boring">}
 </span><span class="boring">
-</span>pub struct MyOperator;
+</span>#[derive(Default)]
+pub struct MyOperator(EmptyState);
 
 impl Operator for MyOperator {
     type IN = u64;
@@ -221,9 +222,13 @@ impl Operator for MyOperator {
     }
     ignore_timeout!();
     ignore_persist!();
+
+    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
+        &amp;mut self.0
+    }
 }
-<span class="boring">
-</span><span class="boring">pub struct TimerOperator;
+<span class="boring">#[derive(Default)]
+</span><span class="boring">pub struct TimerOperator(EmptyState);
 </span><span class="boring">
 </span><span class="boring">impl Operator for TimerOperator {
 </span><span class="boring">    type IN = CustomEvent;
@@ -236,7 +241,7 @@ impl Operator for MyOperator {
 </span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
 </span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
 </span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
-</span><span class="boring">        let current_time = ctx.current_time();
+</span><span class="boring">        let current_time = ctx.current_time()?;
 </span><span class="boring">        let key = element.data.get_key();
 </span><span class="boring">        let time = current_time + 1000;
 </span><span class="boring">
@@ -259,6 +264,10 @@ impl Operator for MyOperator {
 </span><span class="boring">    }
 </span><span class="boring">
 </span><span class="boring">    ignore_persist!();
+</span><span class="boring">
+</span><span class="boring">    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
+</span><span class="boring">        &amp;mut self.0
+</span><span class="boring">    }
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">fn main() {
@@ -266,18 +275,14 @@ impl Operator for MyOperator {
 </span><span class="boring">        .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
 </span><span class="boring">            conf.set_timestamp_extractor(|x: &amp;u64| *x);
 </span><span class="boring">        })
-</span><span class="boring">        .operator(
-</span><span class="boring">            |_: Arc&lt;Sled&gt;| MyOperator,
-</span><span class="boring">            |conf| {
-</span><span class="boring">                conf.set_state_id(&quot;MyOperator&quot;);
-</span><span class="boring">            },
-</span><span class="boring">        )
-</span><span class="boring">        .operator(
-</span><span class="boring">            |_: Arc&lt;Sled&gt;| TimerOperator,
-</span><span class="boring">            |conf| {
-</span><span class="boring">                conf.set_state_id(&quot;TimerOperator&quot;);
-</span><span class="boring">            },
-</span><span class="boring">        )
+</span><span class="boring">        .operator(OperatorBuilder {
+</span><span class="boring">            constructor: Arc::new(|_| MyOperator::default()),
+</span><span class="boring">            conf: Default::default(),
+</span><span class="boring">        })
+</span><span class="boring">        .operator(OperatorBuilder {
+</span><span class="boring">            constructor: Arc::new(|_| TimerOperator::default()),
+</span><span class="boring">            conf: Default::default(),
+</span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
@@ -297,7 +302,8 @@ pub struct CustomEvent {
     pub id: u64,
 }
 <span class="boring">
-</span><span class="boring">pub struct MyOperator;
+</span><span class="boring">#[derive(Default)]
+</span><span class="boring">pub struct MyOperator(EmptyState);
 </span><span class="boring">
 </span><span class="boring">impl Operator for MyOperator {
 </span><span class="boring">    type IN = u64;
@@ -321,9 +327,13 @@ pub struct CustomEvent {
 </span><span class="boring">    }
 </span><span class="boring">    ignore_timeout!();
 </span><span class="boring">    ignore_persist!();
-</span><span class="boring">}
 </span><span class="boring">
-</span><span class="boring">pub struct TimerOperator;
+</span><span class="boring">    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
+</span><span class="boring">        &amp;mut self.0
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">#[derive(Default)]
+</span><span class="boring">pub struct TimerOperator(EmptyState);
 </span><span class="boring">
 </span><span class="boring">impl Operator for TimerOperator {
 </span><span class="boring">    type IN = CustomEvent;
@@ -336,7 +346,7 @@ pub struct CustomEvent {
 </span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
 </span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
 </span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
-</span><span class="boring">        let current_time = ctx.current_time();
+</span><span class="boring">        let current_time = ctx.current_time()?;
 </span><span class="boring">        let key = element.data.get_key();
 </span><span class="boring">        let time = current_time + 1000;
 </span><span class="boring">
@@ -359,6 +369,10 @@ pub struct CustomEvent {
 </span><span class="boring">    }
 </span><span class="boring">
 </span><span class="boring">    ignore_persist!();
+</span><span class="boring">
+</span><span class="boring">    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
+</span><span class="boring">        &amp;mut self.0
+</span><span class="boring">    }
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">fn main() {
@@ -366,18 +380,14 @@ pub struct CustomEvent {
 </span><span class="boring">        .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
 </span><span class="boring">            conf.set_timestamp_extractor(|x: &amp;u64| *x);
 </span><span class="boring">        })
-</span><span class="boring">        .operator(
-</span><span class="boring">            |_: Arc&lt;Sled&gt;| MyOperator,
-</span><span class="boring">            |conf| {
-</span><span class="boring">                conf.set_state_id(&quot;MyOperator&quot;);
-</span><span class="boring">            },
-</span><span class="boring">        )
-</span><span class="boring">        .operator(
-</span><span class="boring">            |_: Arc&lt;Sled&gt;| TimerOperator,
-</span><span class="boring">            |conf| {
-</span><span class="boring">                conf.set_state_id(&quot;TimerOperator&quot;);
-</span><span class="boring">            },
-</span><span class="boring">        )
+</span><span class="boring">        .operator(OperatorBuilder {
+</span><span class="boring">            constructor: Arc::new(|_| MyOperator::default()),
+</span><span class="boring">            conf: Default::default(),
+</span><span class="boring">        })
+</span><span class="boring">        .operator(OperatorBuilder {
+</span><span class="boring">            constructor: Arc::new(|_| TimerOperator::default()),
+</span><span class="boring">            conf: Default::default(),
+</span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
@@ -400,7 +410,8 @@ per key.</p>
 </span><span class="boring">    pub id: u64,
 </span><span class="boring">}
 </span><span class="boring">
-</span><span class="boring">pub struct MyOperator;
+</span><span class="boring">#[derive(Default)]
+</span><span class="boring">pub struct MyOperator(EmptyState);
 </span><span class="boring">
 </span><span class="boring">impl Operator for MyOperator {
 </span><span class="boring">    type IN = u64;
@@ -424,109 +435,13 @@ per key.</p>
 </span><span class="boring">    }
 </span><span class="boring">    ignore_timeout!();
 </span><span class="boring">    ignore_persist!();
-</span><span class="boring">}
 </span><span class="boring">
-</span>pub struct TimerOperator;
-
-impl Operator for TimerOperator {
-    type IN = CustomEvent;
-    type OUT = CustomEvent;
-    type TimerState = u64;
-    type OperatorState = ();
-
-    fn handle_element(
-        &amp;mut self,
-        element: ArconElement&lt;Self::IN&gt;,
-        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
-    ) -&gt; OperatorResult&lt;()&gt; {
-        let current_time = ctx.current_time();
-        let key = element.data.get_key();
-        let time = current_time + 1000;
-
-        if let Err(err) = ctx.schedule_at(key, time, element.data.id) {
-            error!(ctx.log(), &quot;Failed to schedule timer with err {}&quot;, err);
-        }
-
-        ctx.output(element);
-
-        Ok(())
-    }
-
-    fn handle_timeout(
-        &amp;mut self,
-        timeout: Self::TimerState,
-        ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
-    ) -&gt; OperatorResult&lt;()&gt; {
-        info!(ctx.log(), &quot;Got a timer timeout for {:?}&quot;, timeout);
-        Ok(())
-    }
-
-    ignore_persist!();
-}
-<span class="boring">
-</span><span class="boring">fn main() {
-</span><span class="boring">    let mut pipeline = Pipeline::default()
-</span><span class="boring">        .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
-</span><span class="boring">            conf.set_timestamp_extractor(|x: &amp;u64| *x);
-</span><span class="boring">        })
-</span><span class="boring">        .operator(
-</span><span class="boring">            |_: Arc&lt;Sled&gt;| MyOperator,
-</span><span class="boring">            |conf| {
-</span><span class="boring">                conf.set_state_id(&quot;MyOperator&quot;);
-</span><span class="boring">            },
-</span><span class="boring">        )
-</span><span class="boring">        .operator(
-</span><span class="boring">            |_: Arc&lt;Sled&gt;| TimerOperator,
-</span><span class="boring">            |conf| {
-</span><span class="boring">                conf.set_state_id(&quot;TimerOperator&quot;);
-</span><span class="boring">            },
-</span><span class="boring">        )
-</span><span class="boring">        .build();
-</span><span class="boring">
-</span><span class="boring">    pipeline.start();
-</span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">}
-</span></code></pre>
-<p>Finally, we create a simple Pipeline to that uses our custom operators.</p>
-<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::{ignore_persist, ignore_timeout, prelude::*};
-</span><span class="boring">use std::sync::Arc;
-</span><span class="boring">
-</span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
-</span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
-</span><span class="boring">#[derive(Arcon, prost::Message, Copy, Clone)]
-</span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
-</span><span class="boring">pub struct CustomEvent {
-</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
-</span><span class="boring">    pub id: u64,
-</span><span class="boring">}
-</span><span class="boring">
-</span><span class="boring">pub struct MyOperator;
-</span><span class="boring">
-</span><span class="boring">impl Operator for MyOperator {
-</span><span class="boring">    type IN = u64;
-</span><span class="boring">    type OUT = CustomEvent;
-</span><span class="boring">    type TimerState = ArconNever;
-</span><span class="boring">    type OperatorState = ();
-</span><span class="boring">
-</span><span class="boring">    fn handle_element(
-</span><span class="boring">        &amp;mut self,
-</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
-</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
-</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
-</span><span class="boring">        let custom_event = CustomEvent { id: element.data };
-</span><span class="boring">
-</span><span class="boring">        ctx.output(ArconElement {
-</span><span class="boring">            data: custom_event,
-</span><span class="boring">            timestamp: element.timestamp,
-</span><span class="boring">        });
-</span><span class="boring">
-</span><span class="boring">        Ok(())
+</span><span class="boring">    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
+</span><span class="boring">        &amp;mut self.0
 </span><span class="boring">    }
-</span><span class="boring">    ignore_timeout!();
-</span><span class="boring">    ignore_persist!();
 </span><span class="boring">}
-</span><span class="boring">
-</span><span class="boring">pub struct TimerOperator;
+</span><span class="boring">#[derive(Default)]
+</span><span class="boring">pub struct TimerOperator(EmptyState);
 </span><span class="boring">
 </span><span class="boring">impl Operator for TimerOperator {
 </span><span class="boring">    type IN = CustomEvent;
@@ -539,7 +454,7 @@ impl Operator for TimerOperator {
 </span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
 </span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
 </span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
-</span><span class="boring">        let current_time = ctx.current_time();
+</span><span class="boring">        let current_time = ctx.current_time()?;
 </span><span class="boring">        let key = element.data.get_key();
 </span><span class="boring">        let time = current_time + 1000;
 </span><span class="boring">
@@ -562,6 +477,115 @@ impl Operator for TimerOperator {
 </span><span class="boring">    }
 </span><span class="boring">
 </span><span class="boring">    ignore_persist!();
+</span><span class="boring">
+</span><span class="boring">    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
+</span><span class="boring">        &amp;mut self.0
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let mut pipeline = Pipeline::default()
+</span><span class="boring">        .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
+</span><span class="boring">            conf.set_timestamp_extractor(|x: &amp;u64| *x);
+</span><span class="boring">        })
+</span><span class="boring">        .operator(OperatorBuilder {
+</span><span class="boring">            constructor: Arc::new(|_| MyOperator::default()),
+</span><span class="boring">            conf: Default::default(),
+</span><span class="boring">        })
+</span><span class="boring">        .operator(OperatorBuilder {
+</span><span class="boring">            constructor: Arc::new(|_| TimerOperator::default()),
+</span><span class="boring">            conf: Default::default(),
+</span><span class="boring">        })
+</span><span class="boring">        .build();
+</span><span class="boring">
+</span><span class="boring">    pipeline.start();
+</span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">}
+</span></code></pre>
+<p>Finally, we create a simple Pipeline to that uses our custom operators.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::{ignore_persist, ignore_timeout, prelude::*};
+</span><span class="boring">use std::sync::Arc;
+</span><span class="boring">
+</span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
+</span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
+</span><span class="boring">#[derive(Arcon, prost::Message, Copy, Clone)]
+</span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+</span><span class="boring">pub struct CustomEvent {
+</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    pub id: u64,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">#[derive(Default)]
+</span><span class="boring">pub struct MyOperator(EmptyState);
+</span><span class="boring">
+</span><span class="boring">impl Operator for MyOperator {
+</span><span class="boring">    type IN = u64;
+</span><span class="boring">    type OUT = CustomEvent;
+</span><span class="boring">    type TimerState = ArconNever;
+</span><span class="boring">    type OperatorState = ();
+</span><span class="boring">
+</span><span class="boring">    fn handle_element(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
+</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        let custom_event = CustomEvent { id: element.data };
+</span><span class="boring">
+</span><span class="boring">        ctx.output(ArconElement {
+</span><span class="boring">            data: custom_event,
+</span><span class="boring">            timestamp: element.timestamp,
+</span><span class="boring">        });
+</span><span class="boring">
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">    ignore_timeout!();
+</span><span class="boring">    ignore_persist!();
+</span><span class="boring">
+</span><span class="boring">    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
+</span><span class="boring">        &amp;mut self.0
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">#[derive(Default)]
+</span><span class="boring">pub struct TimerOperator(EmptyState);
+</span><span class="boring">
+</span><span class="boring">impl Operator for TimerOperator {
+</span><span class="boring">    type IN = CustomEvent;
+</span><span class="boring">    type OUT = CustomEvent;
+</span><span class="boring">    type TimerState = u64;
+</span><span class="boring">    type OperatorState = ();
+</span><span class="boring">
+</span><span class="boring">    fn handle_element(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
+</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        let current_time = ctx.current_time()?;
+</span><span class="boring">        let key = element.data.get_key();
+</span><span class="boring">        let time = current_time + 1000;
+</span><span class="boring">
+</span><span class="boring">        if let Err(err) = ctx.schedule_at(key, time, element.data.id) {
+</span><span class="boring">            error!(ctx.log(), &quot;Failed to schedule timer with err {}&quot;, err);
+</span><span class="boring">        }
+</span><span class="boring">
+</span><span class="boring">        ctx.output(element);
+</span><span class="boring">
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    fn handle_timeout(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        timeout: Self::TimerState,
+</span><span class="boring">        ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
+</span><span class="boring">        info!(ctx.log(), &quot;Got a timer timeout for {:?}&quot;, timeout);
+</span><span class="boring">        Ok(())
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    ignore_persist!();
+</span><span class="boring">
+</span><span class="boring">    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
+</span><span class="boring">        &amp;mut self.0
+</span><span class="boring">    }
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">fn main() {
@@ -569,18 +593,14 @@ impl Operator for TimerOperator {
         .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
             conf.set_timestamp_extractor(|x: &amp;u64| *x);
         })
-        .operator(
-            |_: Arc&lt;Sled&gt;| MyOperator,
-            |conf| {
-                conf.set_state_id(&quot;MyOperator&quot;);
-            },
-        )
-        .operator(
-            |_: Arc&lt;Sled&gt;| TimerOperator,
-            |conf| {
-                conf.set_state_id(&quot;TimerOperator&quot;);
-            },
-        )
+        .operator(OperatorBuilder {
+            constructor: Arc::new(|_| MyOperator::default()),
+            conf: Default::default(),
+        })
+        .operator(OperatorBuilder {
+            constructor: Arc::new(|_| TimerOperator::default()),
+            conf: Default::default(),
+        })
         .build();
 <span class="boring">
 </span><span class="boring">    pipeline.start();

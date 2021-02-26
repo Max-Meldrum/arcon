@@ -185,8 +185,10 @@ fn main() {
             conf.set_arcon_time(ArconTime::Event);
             conf.set_timestamp_extractor(|x: &amp;u64| *x);
         })
-        .filter(|x| *x &gt; 50)
-        .map(|x| x + 10)
+        .operator(OperatorBuilder {
+            constructor: Arc::new(|_| Filter::new(|x| *x &gt; 50)),
+            conf: Default::default(),
+        })
         .to_console()
         .build();
 
@@ -205,7 +207,10 @@ fn main() {
         .file(&quot;file_source_data&quot;, |cfg| {
             cfg.set_arcon_time(ArconTime::Process);
         })
-        .flatmap(|x: u64| (0..x))
+        .operator(OperatorBuilder {
+            constructor: Arc::new(|_| FlatMap::new(|x| (0..x))),
+            conf: Default::default(),
+        })
         .to_console()
         .build();
 

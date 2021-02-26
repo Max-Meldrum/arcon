@@ -166,30 +166,25 @@
 </span><span class="boring">
 </span>#[derive(ArconState)]
 pub struct StreamState&lt;B: Backend&gt; {
-    counter: Value&lt;u64, B&gt;,
-    counters_map: Map&lt;u64, String, B&gt;,
-    counters: Appender&lt;u64, B&gt;,
+    counter: LazyValue&lt;u64, B&gt;,
+    counters_map: HashTable&lt;u64, String, B&gt;,
+    counters: EagerAppender&lt;u64, B&gt;,
 }
 
-impl&lt;B: Backend&gt; StreamState&lt;B&gt; {
-    pub fn new(backend: Arc&lt;B&gt;) -&gt; Self {
-        let mut counter_handle = Handle::value(&quot;_counter&quot;);
-        let mut counters_map_handle = Handle::map(&quot;_counters_map&quot;);
-        let mut counters_handle = Handle::vec(&quot;_counters&quot;);
+impl&lt;B: Backend&gt; StateConstructor for StreamState&lt;B&gt; {
+    type BackendType = B;
 
-        backend.register_value_handle(&amp;mut counter_handle);
-        backend.register_map_handle(&amp;mut counters_map_handle);
-        backend.register_vec_handle(&amp;mut counters_handle);
-
+    fn new(backend: Arc&lt;Self::BackendType&gt;) -&gt; Self {
         Self {
-            counter: Value::new(counter_handle.activate(backend.clone())),
-            counters_map: Map::new(counters_map_handle.activate(backend.clone())),
-            counters: Appender::new(counters_handle.activate(backend)),
+            counter: LazyValue::new(&quot;_counter&quot;, backend.clone()),
+            counters_map: HashTable::new(&quot;_counters_map&quot;, backend.clone()),
+            counters: EagerAppender::new(&quot;_counters&quot;, backend),
         }
     }
 }
+
 <span class="boring">
-</span><span class="boring">fn main() {
+</span><span class="boring">fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
 </span><span class="boring">    let test_dir = tempfile::tempdir().unwrap();
 </span><span class="boring">    let path = test_dir.path();
 </span><span class="boring">    let backend = Arc::new(Sled::create(path).unwrap());
@@ -198,28 +193,28 @@ impl&lt;B: Backend&gt; StreamState&lt;B&gt; {
 </span><span class="boring">
 </span><span class="boring">    // PUT, GET, RMW, and CLEAR
 </span><span class="boring">
-</span><span class="boring">    state.counter().put(10);
+</span><span class="boring">    state.counter().put(10)?;
 </span><span class="boring">
-</span><span class="boring">    assert_eq!(state.counter().rmw(|v| *v += 10), true);
-</span><span class="boring">    assert_eq!(state.counter().get(), Some(&amp;20));
+</span><span class="boring">    assert_eq!(state.counter().rmw(|v| *v += 10).is_ok(), true);
 </span><span class="boring">
-</span><span class="boring">    state.counter().clear();
-</span><span class="boring">    assert_eq!(state.counter().get(), None);
+</span><span class="boring">    let counter = state.counter().get()?;
+</span><span class="boring">    assert_eq!(counter.unwrap().as_ref(), &amp;20);
+</span><span class="boring">
+</span><span class="boring">    state.counter().clear()?;
+</span><span class="boring">
+</span><span class="boring">    let counter = state.counter().get()?;
+</span><span class="boring">    assert_eq!(counter, None);
 </span><span class="boring">
 </span><span class="boring">
 </span><span class="boring">    // PUT, GET, RMW, and REMOVE
 </span><span class="boring">
-</span><span class="boring">    state
-</span><span class="boring">        .counters_map()
-</span><span class="boring">        .put(1, String::from(&quot;hello&quot;))
-</span><span class="boring">        .expect(&quot;fail&quot;);
+</span><span class="boring">    state.counters_map().put(1, String::from(&quot;hello&quot;))?;
 </span><span class="boring">
 </span><span class="boring">    assert!(state.counters_map().get(&amp;5).unwrap().is_none());
 </span><span class="boring">
 </span><span class="boring">    state
 </span><span class="boring">        .counters_map()
-</span><span class="boring">        .rmw(&amp;1, || String::from(&quot;default&quot;), |s| s.push_str(&quot; world&quot;))
-</span><span class="boring">        .expect(&quot;failure&quot;);
+</span><span class="boring">        .rmw(&amp;1, || String::from(&quot;default&quot;), |s| s.push_str(&quot; world&quot;))?;
 </span><span class="boring">
 </span><span class="boring">    assert_eq!(
 </span><span class="boring">        state.counters_map().get(&amp;1).unwrap(),
@@ -234,12 +229,14 @@ impl&lt;B: Backend&gt; StreamState&lt;B&gt; {
 </span><span class="boring">
 </span><span class="boring">    // APPEND, CONSUME
 </span><span class="boring">
-</span><span class="boring">    state.counters().append(1).expect(&quot;failure&quot;);
-</span><span class="boring">    state.counters().append(2).expect(&quot;failure&quot;);
-</span><span class="boring">    state.counters().append(3).expect(&quot;failure&quot;);
+</span><span class="boring">    state.counters().append(1)?;
+</span><span class="boring">    state.counters().append(2)?;
+</span><span class="boring">    state.counters().append(3)?;
 </span><span class="boring">
 </span><span class="boring">    assert_eq!(state.counters().consume().unwrap(), vec![1, 2, 3]);
 </span><span class="boring">
+</span><span class="boring">
+</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <h2><a class="header" href="#value" id="value">Value</a></h2>
@@ -249,30 +246,25 @@ impl&lt;B: Backend&gt; StreamState&lt;B&gt; {
 </span><span class="boring">
 </span><span class="boring">#[derive(ArconState)]
 </span><span class="boring">pub struct StreamState&lt;B: Backend&gt; {
-</span><span class="boring">    counter: Value&lt;u64, B&gt;,
-</span><span class="boring">    counters_map: Map&lt;u64, String, B&gt;,
-</span><span class="boring">    counters: Appender&lt;u64, B&gt;,
+</span><span class="boring">    counter: LazyValue&lt;u64, B&gt;,
+</span><span class="boring">    counters_map: HashTable&lt;u64, String, B&gt;,
+</span><span class="boring">    counters: EagerAppender&lt;u64, B&gt;,
 </span><span class="boring">}
 </span><span class="boring">
-</span><span class="boring">impl&lt;B: Backend&gt; StreamState&lt;B&gt; {
-</span><span class="boring">    pub fn new(backend: Arc&lt;B&gt;) -&gt; Self {
-</span><span class="boring">        let mut counter_handle = Handle::value(&quot;_counter&quot;);
-</span><span class="boring">        let mut counters_map_handle = Handle::map(&quot;_counters_map&quot;);
-</span><span class="boring">        let mut counters_handle = Handle::vec(&quot;_counters&quot;);
+</span><span class="boring">impl&lt;B: Backend&gt; StateConstructor for StreamState&lt;B&gt; {
+</span><span class="boring">    type BackendType = B;
 </span><span class="boring">
-</span><span class="boring">        backend.register_value_handle(&amp;mut counter_handle);
-</span><span class="boring">        backend.register_map_handle(&amp;mut counters_map_handle);
-</span><span class="boring">        backend.register_vec_handle(&amp;mut counters_handle);
-</span><span class="boring">
+</span><span class="boring">    fn new(backend: Arc&lt;Self::BackendType&gt;) -&gt; Self {
 </span><span class="boring">        Self {
-</span><span class="boring">            counter: Value::new(counter_handle.activate(backend.clone())),
-</span><span class="boring">            counters_map: Map::new(counters_map_handle.activate(backend.clone())),
-</span><span class="boring">            counters: Appender::new(counters_handle.activate(backend)),
+</span><span class="boring">            counter: LazyValue::new(&quot;_counter&quot;, backend.clone()),
+</span><span class="boring">            counters_map: HashTable::new(&quot;_counters_map&quot;, backend.clone()),
+</span><span class="boring">            counters: EagerAppender::new(&quot;_counters&quot;, backend),
 </span><span class="boring">        }
 </span><span class="boring">    }
 </span><span class="boring">}
 </span><span class="boring">
-</span><span class="boring">fn main() {
+</span><span class="boring">
+</span><span class="boring">fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
 </span><span class="boring">    let test_dir = tempfile::tempdir().unwrap();
 </span><span class="boring">    let path = test_dir.path();
 </span><span class="boring">    let backend = Arc::new(Sled::create(path).unwrap());
@@ -281,28 +273,28 @@ impl&lt;B: Backend&gt; StreamState&lt;B&gt; {
 </span><span class="boring">
 </span>    // PUT, GET, RMW, and CLEAR
 
-    state.counter().put(10);
+    state.counter().put(10)?;
 
-    assert_eq!(state.counter().rmw(|v| *v += 10), true);
-    assert_eq!(state.counter().get(), Some(&amp;20));
+    assert_eq!(state.counter().rmw(|v| *v += 10).is_ok(), true);
 
-    state.counter().clear();
-    assert_eq!(state.counter().get(), None);
+    let counter = state.counter().get()?;
+    assert_eq!(counter.unwrap().as_ref(), &amp;20);
+
+    state.counter().clear()?;
+
+    let counter = state.counter().get()?;
+    assert_eq!(counter, None);
 
 <span class="boring">
 </span><span class="boring">    // PUT, GET, RMW, and REMOVE
 </span><span class="boring">
-</span><span class="boring">    state
-</span><span class="boring">        .counters_map()
-</span><span class="boring">        .put(1, String::from(&quot;hello&quot;))
-</span><span class="boring">        .expect(&quot;fail&quot;);
+</span><span class="boring">    state.counters_map().put(1, String::from(&quot;hello&quot;))?;
 </span><span class="boring">
 </span><span class="boring">    assert!(state.counters_map().get(&amp;5).unwrap().is_none());
 </span><span class="boring">
 </span><span class="boring">    state
 </span><span class="boring">        .counters_map()
-</span><span class="boring">        .rmw(&amp;1, || String::from(&quot;default&quot;), |s| s.push_str(&quot; world&quot;))
-</span><span class="boring">        .expect(&quot;failure&quot;);
+</span><span class="boring">        .rmw(&amp;1, || String::from(&quot;default&quot;), |s| s.push_str(&quot; world&quot;))?;
 </span><span class="boring">
 </span><span class="boring">    assert_eq!(
 </span><span class="boring">        state.counters_map().get(&amp;1).unwrap(),
@@ -317,47 +309,44 @@ impl&lt;B: Backend&gt; StreamState&lt;B&gt; {
 </span><span class="boring">
 </span><span class="boring">    // APPEND, CONSUME
 </span><span class="boring">
-</span><span class="boring">    state.counters().append(1).expect(&quot;failure&quot;);
-</span><span class="boring">    state.counters().append(2).expect(&quot;failure&quot;);
-</span><span class="boring">    state.counters().append(3).expect(&quot;failure&quot;);
+</span><span class="boring">    state.counters().append(1)?;
+</span><span class="boring">    state.counters().append(2)?;
+</span><span class="boring">    state.counters().append(3)?;
 </span><span class="boring">
 </span><span class="boring">    assert_eq!(state.counters().consume().unwrap(), vec![1, 2, 3]);
 </span><span class="boring">
+</span><span class="boring">
+</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <p>There is no <code>Eager</code> version of Value provided as it does not make much sense while 
 dealing with a single object.</p>
-<h2><a class="header" href="#map" id="map">Map</a></h2>
+<h2><a class="header" href="#hashtable" id="hashtable">HashTable</a></h2>
 <p>An index for managing an unordered hash index. </p>
 <pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::prelude::*;
 </span><span class="boring">use std::sync::Arc;
 </span><span class="boring">
 </span><span class="boring">#[derive(ArconState)]
 </span><span class="boring">pub struct StreamState&lt;B: Backend&gt; {
-</span><span class="boring">    counter: Value&lt;u64, B&gt;,
-</span><span class="boring">    counters_map: Map&lt;u64, String, B&gt;,
-</span><span class="boring">    counters: Appender&lt;u64, B&gt;,
+</span><span class="boring">    counter: LazyValue&lt;u64, B&gt;,
+</span><span class="boring">    counters_map: HashTable&lt;u64, String, B&gt;,
+</span><span class="boring">    counters: EagerAppender&lt;u64, B&gt;,
 </span><span class="boring">}
 </span><span class="boring">
-</span><span class="boring">impl&lt;B: Backend&gt; StreamState&lt;B&gt; {
-</span><span class="boring">    pub fn new(backend: Arc&lt;B&gt;) -&gt; Self {
-</span><span class="boring">        let mut counter_handle = Handle::value(&quot;_counter&quot;);
-</span><span class="boring">        let mut counters_map_handle = Handle::map(&quot;_counters_map&quot;);
-</span><span class="boring">        let mut counters_handle = Handle::vec(&quot;_counters&quot;);
+</span><span class="boring">impl&lt;B: Backend&gt; StateConstructor for StreamState&lt;B&gt; {
+</span><span class="boring">    type BackendType = B;
 </span><span class="boring">
-</span><span class="boring">        backend.register_value_handle(&amp;mut counter_handle);
-</span><span class="boring">        backend.register_map_handle(&amp;mut counters_map_handle);
-</span><span class="boring">        backend.register_vec_handle(&amp;mut counters_handle);
-</span><span class="boring">
+</span><span class="boring">    fn new(backend: Arc&lt;Self::BackendType&gt;) -&gt; Self {
 </span><span class="boring">        Self {
-</span><span class="boring">            counter: Value::new(counter_handle.activate(backend.clone())),
-</span><span class="boring">            counters_map: Map::new(counters_map_handle.activate(backend.clone())),
-</span><span class="boring">            counters: Appender::new(counters_handle.activate(backend)),
+</span><span class="boring">            counter: LazyValue::new(&quot;_counter&quot;, backend.clone()),
+</span><span class="boring">            counters_map: HashTable::new(&quot;_counters_map&quot;, backend.clone()),
+</span><span class="boring">            counters: EagerAppender::new(&quot;_counters&quot;, backend),
 </span><span class="boring">        }
 </span><span class="boring">    }
 </span><span class="boring">}
 </span><span class="boring">
-</span><span class="boring">fn main() {
+</span><span class="boring">
+</span><span class="boring">fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
 </span><span class="boring">    let test_dir = tempfile::tempdir().unwrap();
 </span><span class="boring">    let path = test_dir.path();
 </span><span class="boring">    let backend = Arc::new(Sled::create(path).unwrap());
@@ -366,28 +355,28 @@ dealing with a single object.</p>
 </span><span class="boring">
 </span><span class="boring">    // PUT, GET, RMW, and CLEAR
 </span><span class="boring">
-</span><span class="boring">    state.counter().put(10);
+</span><span class="boring">    state.counter().put(10)?;
 </span><span class="boring">
-</span><span class="boring">    assert_eq!(state.counter().rmw(|v| *v += 10), true);
-</span><span class="boring">    assert_eq!(state.counter().get(), Some(&amp;20));
+</span><span class="boring">    assert_eq!(state.counter().rmw(|v| *v += 10).is_ok(), true);
 </span><span class="boring">
-</span><span class="boring">    state.counter().clear();
-</span><span class="boring">    assert_eq!(state.counter().get(), None);
+</span><span class="boring">    let counter = state.counter().get()?;
+</span><span class="boring">    assert_eq!(counter.unwrap().as_ref(), &amp;20);
+</span><span class="boring">
+</span><span class="boring">    state.counter().clear()?;
+</span><span class="boring">
+</span><span class="boring">    let counter = state.counter().get()?;
+</span><span class="boring">    assert_eq!(counter, None);
 </span><span class="boring">
 </span><span class="boring">
 </span>    // PUT, GET, RMW, and REMOVE
 
-    state
-        .counters_map()
-        .put(1, String::from(&quot;hello&quot;))
-        .expect(&quot;fail&quot;);
+    state.counters_map().put(1, String::from(&quot;hello&quot;))?;
 
     assert!(state.counters_map().get(&amp;5).unwrap().is_none());
 
     state
         .counters_map()
-        .rmw(&amp;1, || String::from(&quot;default&quot;), |s| s.push_str(&quot; world&quot;))
-        .expect(&quot;failure&quot;);
+        .rmw(&amp;1, || String::from(&quot;default&quot;), |s| s.push_str(&quot; world&quot;))?;
 
     assert_eq!(
         state.counters_map().get(&amp;1).unwrap(),
@@ -402,12 +391,14 @@ dealing with a single object.</p>
 <span class="boring">
 </span><span class="boring">    // APPEND, CONSUME
 </span><span class="boring">
-</span><span class="boring">    state.counters().append(1).expect(&quot;failure&quot;);
-</span><span class="boring">    state.counters().append(2).expect(&quot;failure&quot;);
-</span><span class="boring">    state.counters().append(3).expect(&quot;failure&quot;);
+</span><span class="boring">    state.counters().append(1)?;
+</span><span class="boring">    state.counters().append(2)?;
+</span><span class="boring">    state.counters().append(3)?;
 </span><span class="boring">
 </span><span class="boring">    assert_eq!(state.counters().consume().unwrap(), vec![1, 2, 3]);
 </span><span class="boring">
+</span><span class="boring">
+</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <p>An index for appending data which then later can be consumed.</p>
@@ -417,30 +408,25 @@ dealing with a single object.</p>
 </span><span class="boring">
 </span><span class="boring">#[derive(ArconState)]
 </span><span class="boring">pub struct StreamState&lt;B: Backend&gt; {
-</span><span class="boring">    counter: Value&lt;u64, B&gt;,
-</span><span class="boring">    counters_map: Map&lt;u64, String, B&gt;,
-</span><span class="boring">    counters: Appender&lt;u64, B&gt;,
+</span><span class="boring">    counter: LazyValue&lt;u64, B&gt;,
+</span><span class="boring">    counters_map: HashTable&lt;u64, String, B&gt;,
+</span><span class="boring">    counters: EagerAppender&lt;u64, B&gt;,
 </span><span class="boring">}
 </span><span class="boring">
-</span><span class="boring">impl&lt;B: Backend&gt; StreamState&lt;B&gt; {
-</span><span class="boring">    pub fn new(backend: Arc&lt;B&gt;) -&gt; Self {
-</span><span class="boring">        let mut counter_handle = Handle::value(&quot;_counter&quot;);
-</span><span class="boring">        let mut counters_map_handle = Handle::map(&quot;_counters_map&quot;);
-</span><span class="boring">        let mut counters_handle = Handle::vec(&quot;_counters&quot;);
+</span><span class="boring">impl&lt;B: Backend&gt; StateConstructor for StreamState&lt;B&gt; {
+</span><span class="boring">    type BackendType = B;
 </span><span class="boring">
-</span><span class="boring">        backend.register_value_handle(&amp;mut counter_handle);
-</span><span class="boring">        backend.register_map_handle(&amp;mut counters_map_handle);
-</span><span class="boring">        backend.register_vec_handle(&amp;mut counters_handle);
-</span><span class="boring">
+</span><span class="boring">    fn new(backend: Arc&lt;Self::BackendType&gt;) -&gt; Self {
 </span><span class="boring">        Self {
-</span><span class="boring">            counter: Value::new(counter_handle.activate(backend.clone())),
-</span><span class="boring">            counters_map: Map::new(counters_map_handle.activate(backend.clone())),
-</span><span class="boring">            counters: Appender::new(counters_handle.activate(backend)),
+</span><span class="boring">            counter: LazyValue::new(&quot;_counter&quot;, backend.clone()),
+</span><span class="boring">            counters_map: HashTable::new(&quot;_counters_map&quot;, backend.clone()),
+</span><span class="boring">            counters: EagerAppender::new(&quot;_counters&quot;, backend),
 </span><span class="boring">        }
 </span><span class="boring">    }
 </span><span class="boring">}
 </span><span class="boring">
-</span><span class="boring">fn main() {
+</span><span class="boring">
+</span><span class="boring">fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
 </span><span class="boring">    let test_dir = tempfile::tempdir().unwrap();
 </span><span class="boring">    let path = test_dir.path();
 </span><span class="boring">    let backend = Arc::new(Sled::create(path).unwrap());
@@ -449,28 +435,28 @@ dealing with a single object.</p>
 </span><span class="boring">
 </span><span class="boring">    // PUT, GET, RMW, and CLEAR
 </span><span class="boring">
-</span><span class="boring">    state.counter().put(10);
+</span><span class="boring">    state.counter().put(10)?;
 </span><span class="boring">
-</span><span class="boring">    assert_eq!(state.counter().rmw(|v| *v += 10), true);
-</span><span class="boring">    assert_eq!(state.counter().get(), Some(&amp;20));
+</span><span class="boring">    assert_eq!(state.counter().rmw(|v| *v += 10).is_ok(), true);
 </span><span class="boring">
-</span><span class="boring">    state.counter().clear();
-</span><span class="boring">    assert_eq!(state.counter().get(), None);
+</span><span class="boring">    let counter = state.counter().get()?;
+</span><span class="boring">    assert_eq!(counter.unwrap().as_ref(), &amp;20);
+</span><span class="boring">
+</span><span class="boring">    state.counter().clear()?;
+</span><span class="boring">
+</span><span class="boring">    let counter = state.counter().get()?;
+</span><span class="boring">    assert_eq!(counter, None);
 </span><span class="boring">
 </span><span class="boring">
 </span><span class="boring">    // PUT, GET, RMW, and REMOVE
 </span><span class="boring">
-</span><span class="boring">    state
-</span><span class="boring">        .counters_map()
-</span><span class="boring">        .put(1, String::from(&quot;hello&quot;))
-</span><span class="boring">        .expect(&quot;fail&quot;);
+</span><span class="boring">    state.counters_map().put(1, String::from(&quot;hello&quot;))?;
 </span><span class="boring">
 </span><span class="boring">    assert!(state.counters_map().get(&amp;5).unwrap().is_none());
 </span><span class="boring">
 </span><span class="boring">    state
 </span><span class="boring">        .counters_map()
-</span><span class="boring">        .rmw(&amp;1, || String::from(&quot;default&quot;), |s| s.push_str(&quot; world&quot;))
-</span><span class="boring">        .expect(&quot;failure&quot;);
+</span><span class="boring">        .rmw(&amp;1, || String::from(&quot;default&quot;), |s| s.push_str(&quot; world&quot;))?;
 </span><span class="boring">
 </span><span class="boring">    assert_eq!(
 </span><span class="boring">        state.counters_map().get(&amp;1).unwrap(),
@@ -485,13 +471,15 @@ dealing with a single object.</p>
 </span><span class="boring">
 </span>    // APPEND, CONSUME
 
-    state.counters().append(1).expect(&quot;failure&quot;);
-    state.counters().append(2).expect(&quot;failure&quot;);
-    state.counters().append(3).expect(&quot;failure&quot;);
+    state.counters().append(1)?;
+    state.counters().append(2)?;
+    state.counters().append(3)?;
 
     assert_eq!(state.counters().consume().unwrap(), vec![1, 2, 3]);
 
-<span class="boring">}
+<span class="boring">
+</span><span class="boring">    Ok(())
+</span><span class="boring">}
 </span></code></pre>
 
                     </main>

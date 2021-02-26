@@ -184,74 +184,65 @@ to acheive this is to use the provided derive macro.</p>
 in an <code>Appender</code> index.</p>
 <pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::prelude::*;
 </span><span class="boring">use examples::SnapshotComponent;
-</span><span class="boring">use std::{path::Path, sync::Arc};
+</span><span class="boring">use std::sync::Arc;
 </span><span class="boring">
 </span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
 </span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
-</span>#[derive(Arcon, prost::Message, Copy, Clone)]
-#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+</span>#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
+#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 pub struct Event {
     #[prost(uint64, tag = &quot;1&quot;)]
     pub id: u64,
+    #[prost(float, tag = &quot;2&quot;)]
+    pub data: f32,
 }
 <span class="boring">
 </span><span class="boring">#[derive(ArconState)]
 </span><span class="boring">pub struct MyState&lt;B: Backend&gt; {
-</span><span class="boring">    events: Appender&lt;Event, B&gt;,
+</span><span class="boring">    #[table = &quot;events&quot;]
+</span><span class="boring">    events: EagerValue&lt;Event, B&gt;,
 </span><span class="boring">}
 </span><span class="boring">
-</span><span class="boring">impl&lt;B: Backend&gt; MyState&lt;B&gt; {
-</span><span class="boring">    pub fn new(backend: Arc&lt;B&gt;) -&gt; Self {
-</span><span class="boring">        let mut events_handle = Handle::vec(&quot;_events&quot;);
-</span><span class="boring">        backend.register_vec_handle(&amp;mut events_handle);
+</span><span class="boring">impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
+</span><span class="boring">    type BackendType = B;
 </span><span class="boring">
-</span><span class="boring">        MyState {
-</span><span class="boring">            events: Appender::new(events_handle.activate(backend)),
+</span><span class="boring">    fn new(backend: Arc&lt;Self::BackendType&gt;) -&gt; Self {
+</span><span class="boring">        Self {
+</span><span class="boring">            events: EagerValue::new(&quot;_events&quot;, backend),
 </span><span class="boring">        }
 </span><span class="boring">    }
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">
-</span><span class="boring">impl&lt;B: Backend&gt; From&lt;Snapshot&gt; for MyState&lt;B&gt; {
-</span><span class="boring">    fn from(snapshot: Snapshot) -&gt; Self {
-</span><span class="boring">        let snapshot_dir = Path::new(&amp;snapshot.snapshot_path);
-</span><span class="boring">        let backend = Arc::new(B::restore(&amp;snapshot_dir, &amp;snapshot_dir).unwrap());
-</span><span class="boring">        MyState::new(backend)
-</span><span class="boring">    }
-</span><span class="boring">}
-</span><span class="boring">
-</span><span class="boring">fn main() {
+</span><span class="boring">#[tokio::main]
+</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
 </span><span class="boring">    let conf = ArconConf {
-</span><span class="boring">        epoch_interval: 10000,
+</span><span class="boring">        epoch_interval: 2500,
+</span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
 </span><span class="boring">        ..Default::default()
 </span><span class="boring">    };
 </span><span class="boring">
 </span><span class="boring">    let mut pipeline = Pipeline::with_conf(conf)
 </span><span class="boring">        .collection(
-</span><span class="boring">            (0..10000000)
-</span><span class="boring">                .map(|x| Event { id: x })
+</span><span class="boring">            (0..1000000)
+</span><span class="boring">                .map(|x| Event { id: x, data: 1.5 })
 </span><span class="boring">                .collect::&lt;Vec&lt;Event&gt;&gt;(),
 </span><span class="boring">            |conf| {
 </span><span class="boring">                conf.set_timestamp_extractor(|x: &amp;Event| x.id);
 </span><span class="boring">            },
 </span><span class="boring">        )
-</span><span class="boring">        .filter(|event| event.id &gt; 50)
-</span><span class="boring">        .map_with_state(
-</span><span class="boring">            |x, state: &amp;mut MyState&lt;Sled&gt;| {
-</span><span class="boring">                state.events().append(x)?;
-</span><span class="boring">                Ok(x)
-</span><span class="boring">            },
-</span><span class="boring">            MyState::new,
-</span><span class="boring">            |conf| {
-</span><span class="boring">                conf.set_state_id(&quot;map_state_one&quot;);
-</span><span class="boring">            },
-</span><span class="boring">        )
+</span><span class="boring">        .operator(OperatorBuilder {
+</span><span class="boring">            constructor: Arc::new(|backend| {
+</span><span class="boring">                Map::stateful(MyState::new(backend), |event, state| {
+</span><span class="boring">                    state.events().put(event)?;
+</span><span class="boring">                    Ok(event)
+</span><span class="boring">                })
+</span><span class="boring">            }),
+</span><span class="boring">            conf: Default::default(),
+</span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span><span class="boring">    pipeline.watch(&quot;map_state_one&quot;, |epoch, mut s: MyState&lt;Sled&gt;| {
-</span><span class="boring">        let events_len = s.events().len();
-</span><span class="boring">        println!(&quot;Events Length {:?} for Epoch {}&quot;, events_len, epoch);
-</span><span class="boring">    });
+</span><span class="boring">
 </span><span class="boring">
 </span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
 </span><span class="boring">    // Create Kompact component to receive snapshots
@@ -262,10 +253,12 @@ pub struct Event {
 </span><span class="boring">        .wait_timeout(std::time::Duration::from_millis(200))
 </span><span class="boring">        .expect(&quot;Failed to start component&quot;);
 </span><span class="boring">
-</span><span class="boring">    pipeline.watch_with(&quot;map_state_one&quot;, snapshot_comp);
+</span><span class="boring">    pipeline.watch_with::&lt;MyState&lt;Sled&gt;&gt;(snapshot_comp);
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">
+</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <p>We then create our custom state object <code>MyState</code> and add the
@@ -275,74 +268,65 @@ want to access some non-durable field, then you may add the <code>#[ephemeral]</
 above the field.</p>
 <pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::prelude::*;
 </span><span class="boring">use examples::SnapshotComponent;
-</span><span class="boring">use std::{path::Path, sync::Arc};
+</span><span class="boring">use std::sync::Arc;
 </span><span class="boring">
 </span><span class="boring">#[cfg_attr(feature = &quot;arcon_serde&quot;, derive(serde::Deserialize, serde::Serialize))]
 </span><span class="boring">#[cfg_attr(feature = &quot;unsafe_flight&quot;, derive(abomonation_derive::Abomonation))]
-</span><span class="boring">#[derive(Arcon, prost::Message, Copy, Clone)]
-</span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+</span><span class="boring">#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
+</span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 </span><span class="boring">pub struct Event {
 </span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
 </span><span class="boring">    pub id: u64,
+</span><span class="boring">    #[prost(float, tag = &quot;2&quot;)]
+</span><span class="boring">    pub data: f32,
 </span><span class="boring">}
 </span><span class="boring">
 </span>#[derive(ArconState)]
 pub struct MyState&lt;B: Backend&gt; {
-    events: Appender&lt;Event, B&gt;,
+    #[table = &quot;events&quot;]
+    events: EagerValue&lt;Event, B&gt;,
 }
 
-impl&lt;B: Backend&gt; MyState&lt;B&gt; {
-    pub fn new(backend: Arc&lt;B&gt;) -&gt; Self {
-        let mut events_handle = Handle::vec(&quot;_events&quot;);
-        backend.register_vec_handle(&amp;mut events_handle);
+impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
+    type BackendType = B;
 
-        MyState {
-            events: Appender::new(events_handle.activate(backend)),
+    fn new(backend: Arc&lt;Self::BackendType&gt;) -&gt; Self {
+        Self {
+            events: EagerValue::new(&quot;_events&quot;, backend),
         }
     }
 }
 
 <span class="boring">
-</span><span class="boring">impl&lt;B: Backend&gt; From&lt;Snapshot&gt; for MyState&lt;B&gt; {
-</span><span class="boring">    fn from(snapshot: Snapshot) -&gt; Self {
-</span><span class="boring">        let snapshot_dir = Path::new(&amp;snapshot.snapshot_path);
-</span><span class="boring">        let backend = Arc::new(B::restore(&amp;snapshot_dir, &amp;snapshot_dir).unwrap());
-</span><span class="boring">        MyState::new(backend)
-</span><span class="boring">    }
-</span><span class="boring">}
-</span><span class="boring">
-</span><span class="boring">fn main() {
+</span><span class="boring">#[tokio::main]
+</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
 </span><span class="boring">    let conf = ArconConf {
-</span><span class="boring">        epoch_interval: 10000,
+</span><span class="boring">        epoch_interval: 2500,
+</span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
 </span><span class="boring">        ..Default::default()
 </span><span class="boring">    };
 </span><span class="boring">
 </span><span class="boring">    let mut pipeline = Pipeline::with_conf(conf)
 </span><span class="boring">        .collection(
-</span><span class="boring">            (0..10000000)
-</span><span class="boring">                .map(|x| Event { id: x })
+</span><span class="boring">            (0..1000000)
+</span><span class="boring">                .map(|x| Event { id: x, data: 1.5 })
 </span><span class="boring">                .collect::&lt;Vec&lt;Event&gt;&gt;(),
 </span><span class="boring">            |conf| {
 </span><span class="boring">                conf.set_timestamp_extractor(|x: &amp;Event| x.id);
 </span><span class="boring">            },
 </span><span class="boring">        )
-</span><span class="boring">        .filter(|event| event.id &gt; 50)
-</span><span class="boring">        .map_with_state(
-</span><span class="boring">            |x, state: &amp;mut MyState&lt;Sled&gt;| {
-</span><span class="boring">                state.events().append(x)?;
-</span><span class="boring">                Ok(x)
-</span><span class="boring">            },
-</span><span class="boring">            MyState::new,
-</span><span class="boring">            |conf| {
-</span><span class="boring">                conf.set_state_id(&quot;map_state_one&quot;);
-</span><span class="boring">            },
-</span><span class="boring">        )
+</span><span class="boring">        .operator(OperatorBuilder {
+</span><span class="boring">            constructor: Arc::new(|backend| {
+</span><span class="boring">                Map::stateful(MyState::new(backend), |event, state| {
+</span><span class="boring">                    state.events().put(event)?;
+</span><span class="boring">                    Ok(event)
+</span><span class="boring">                })
+</span><span class="boring">            }),
+</span><span class="boring">            conf: Default::default(),
+</span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span><span class="boring">    pipeline.watch(&quot;map_state_one&quot;, |epoch, mut s: MyState&lt;Sled&gt;| {
-</span><span class="boring">        let events_len = s.events().len();
-</span><span class="boring">        println!(&quot;Events Length {:?} for Epoch {}&quot;, events_len, epoch);
-</span><span class="boring">    });
+</span><span class="boring">
 </span><span class="boring">
 </span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
 </span><span class="boring">    // Create Kompact component to receive snapshots
@@ -353,10 +337,12 @@ impl&lt;B: Backend&gt; MyState&lt;B&gt; {
 </span><span class="boring">        .wait_timeout(std::time::Duration::from_millis(200))
 </span><span class="boring">        .expect(&quot;Failed to start component&quot;);
 </span><span class="boring">
-</span><span class="boring">    pipeline.watch_with(&quot;map_state_one&quot;, snapshot_comp);
+</span><span class="boring">    pipeline.watch_with::&lt;MyState&lt;Sled&gt;&gt;(snapshot_comp);
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">
+</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <p>Examples of more state indexes can be found <a href="../pipeline/indexes.html">here</a>.</p>
