@@ -91,7 +91,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">Foreword</a></li><li class="chapter-item expanded affix "><a href="getting-started.html">Getting Started</a></li><li class="chapter-item expanded "><a href="introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/architecture.html"><strong aria-hidden="true">1.1.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="introduction/data_format.html"><strong aria-hidden="true">1.2.</strong> Data Format</a></li><li class="chapter-item expanded "><a href="introduction/state.html"><strong aria-hidden="true">1.3.</strong> State Management</a></li><li class="chapter-item expanded "><a href="introduction/operators.html"><strong aria-hidden="true">1.4.</strong> Operators</a></li></ol></li><li class="chapter-item expanded "><a href="pipeline/index.html"><strong aria-hidden="true">2.</strong> Pipeline</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="pipeline/configuration.html"><strong aria-hidden="true">2.1.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="pipeline/source.html"><strong aria-hidden="true">2.2.</strong> Sources</a></li><li class="chapter-item expanded "><a href="pipeline/stream.html"><strong aria-hidden="true">2.3.</strong> Stream API</a></li><li class="chapter-item expanded "><a href="pipeline/backends.html"><strong aria-hidden="true">2.4.</strong> State Backends</a></li><li class="chapter-item expanded "><a href="pipeline/indexes.html"><strong aria-hidden="true">2.5.</strong> State Indexes</a></li><li class="chapter-item expanded "><a href="pipeline/state.html"><strong aria-hidden="true">2.6.</strong> State Access</a></li></ol></li><li class="chapter-item expanded "><a href="project_info.html"><strong aria-hidden="true">3.</strong> Project Info</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">Foreword</a></li><li class="chapter-item expanded affix "><a href="getting-started.html">Getting Started</a></li><li class="chapter-item expanded "><a href="introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/architecture.html"><strong aria-hidden="true">1.1.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="introduction/data_format.html"><strong aria-hidden="true">1.2.</strong> Data Format</a></li><li class="chapter-item expanded "><a href="introduction/state.html"><strong aria-hidden="true">1.3.</strong> State Management</a></li><li class="chapter-item expanded "><a href="introduction/operators.html"><strong aria-hidden="true">1.4.</strong> Operators</a></li></ol></li><li class="chapter-item expanded "><a href="pipeline/index.html"><strong aria-hidden="true">2.</strong> Pipeline</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="pipeline/configuration.html"><strong aria-hidden="true">2.1.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="pipeline/source.html"><strong aria-hidden="true">2.2.</strong> Sources</a></li><li class="chapter-item expanded "><a href="pipeline/stream.html"><strong aria-hidden="true">2.3.</strong> Stream API</a></li><li class="chapter-item expanded "><a href="pipeline/backends.html"><strong aria-hidden="true">2.4.</strong> State Backends</a></li><li class="chapter-item expanded "><a href="pipeline/indexes.html"><strong aria-hidden="true">2.5.</strong> State Indexes</a></li><li class="chapter-item expanded "><a href="pipeline/state.html"><strong aria-hidden="true">2.6.</strong> State Access</a></li></ol></li><li class="chapter-item expanded "><a href="roadmap.html"><strong aria-hidden="true">3.</strong> Roadmap</a></li><li class="chapter-item expanded "><a href="project_info.html"><strong aria-hidden="true">4.</strong> Project Info</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -193,6 +193,10 @@ fn main() {
             constructor: Arc::new(|_| Filter::new(|x| *x &gt; 50)),
             conf: Default::default(),
         })
+        .operator(OperatorBuilder {
+            constructor: Arc::new(|_| Map::new(|x| x + 10)),
+            conf: Default::default(),
+        })
         .to_console()
         .build();
 
@@ -273,9 +277,9 @@ prost = &quot;ARCON_PROST_VERSION&quot;
 </span>#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
 #[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 pub struct Event {
-    #[prost(uint64, tag = &quot;1&quot;)]
+    #[prost(uint64)]
     pub id: u64,
-    #[prost(float, tag = &quot;2&quot;)]
+    #[prost(float)]
     pub data: f32,
 }
 <span class="boring">
@@ -296,8 +300,7 @@ pub struct Event {
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">
-</span><span class="boring">#[tokio::main]
-</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+</span><span class="boring">fn main() {
 </span><span class="boring">    let conf = ArconConf {
 </span><span class="boring">        epoch_interval: 2500,
 </span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
@@ -324,7 +327,9 @@ pub struct Event {
 </span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span><span class="boring">
+</span><span class="boring">    pipeline.watch(|epoch: u64, _: MyState&lt;Sled&gt;| {
+</span><span class="boring">        println!(&quot;Got state object for epoch {}&quot;, epoch);
+</span><span class="boring">    });
 </span><span class="boring">
 </span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
 </span><span class="boring">    // Create Kompact component to receive snapshots
@@ -339,8 +344,6 @@ pub struct Event {
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">
-</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <h2><a class="header" href="#generating-arcontype-from-proto-files" id="generating-arcontype-from-proto-files">Generating ArconType from .proto files</a></h2>
@@ -426,9 +429,9 @@ in an <code>Appender</code> index.</p>
 </span>#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
 #[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 pub struct Event {
-    #[prost(uint64, tag = &quot;1&quot;)]
+    #[prost(uint64)]
     pub id: u64,
-    #[prost(float, tag = &quot;2&quot;)]
+    #[prost(float)]
     pub data: f32,
 }
 <span class="boring">
@@ -449,8 +452,7 @@ pub struct Event {
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">
-</span><span class="boring">#[tokio::main]
-</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+</span><span class="boring">fn main() {
 </span><span class="boring">    let conf = ArconConf {
 </span><span class="boring">        epoch_interval: 2500,
 </span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
@@ -477,7 +479,9 @@ pub struct Event {
 </span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span><span class="boring">
+</span><span class="boring">    pipeline.watch(|epoch: u64, _: MyState&lt;Sled&gt;| {
+</span><span class="boring">        println!(&quot;Got state object for epoch {}&quot;, epoch);
+</span><span class="boring">    });
 </span><span class="boring">
 </span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
 </span><span class="boring">    // Create Kompact component to receive snapshots
@@ -492,8 +496,6 @@ pub struct Event {
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">
-</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <p>We then create our custom state object <code>MyState</code> and add the
@@ -510,9 +512,9 @@ above the field.</p>
 </span><span class="boring">#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
 </span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 </span><span class="boring">pub struct Event {
-</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    #[prost(uint64)]
 </span><span class="boring">    pub id: u64,
-</span><span class="boring">    #[prost(float, tag = &quot;2&quot;)]
+</span><span class="boring">    #[prost(float)]
 </span><span class="boring">    pub data: f32,
 </span><span class="boring">}
 </span><span class="boring">
@@ -533,8 +535,7 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 }
 
 <span class="boring">
-</span><span class="boring">#[tokio::main]
-</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+</span><span class="boring">fn main() {
 </span><span class="boring">    let conf = ArconConf {
 </span><span class="boring">        epoch_interval: 2500,
 </span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
@@ -561,7 +562,9 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span><span class="boring">
+</span><span class="boring">    pipeline.watch(|epoch: u64, _: MyState&lt;Sled&gt;| {
+</span><span class="boring">        println!(&quot;Got state object for epoch {}&quot;, epoch);
+</span><span class="boring">    });
 </span><span class="boring">
 </span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
 </span><span class="boring">    // Create Kompact component to receive snapshots
@@ -576,8 +579,6 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">
-</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <p>Examples of more state indexes can be found <a href="introduction/../pipeline/indexes.html">here</a>.</p>
@@ -649,7 +650,8 @@ impl Operator for MyOperator {
         &amp;mut self.0
     }
 }
-<span class="boring">#[derive(Default)]
+<span class="boring">
+</span><span class="boring">#[derive(Default)]
 </span><span class="boring">pub struct TimerOperator(EmptyState);
 </span><span class="boring">
 </span><span class="boring">impl Operator for TimerOperator {
@@ -754,6 +756,7 @@ pub struct CustomEvent {
 </span><span class="boring">        &amp;mut self.0
 </span><span class="boring">    }
 </span><span class="boring">}
+</span><span class="boring">
 </span><span class="boring">#[derive(Default)]
 </span><span class="boring">pub struct TimerOperator(EmptyState);
 </span><span class="boring">
@@ -862,49 +865,50 @@ per key.</p>
 </span><span class="boring">        &amp;mut self.0
 </span><span class="boring">    }
 </span><span class="boring">}
-</span><span class="boring">#[derive(Default)]
-</span><span class="boring">pub struct TimerOperator(EmptyState);
 </span><span class="boring">
-</span><span class="boring">impl Operator for TimerOperator {
-</span><span class="boring">    type IN = CustomEvent;
-</span><span class="boring">    type OUT = CustomEvent;
-</span><span class="boring">    type TimerState = u64;
-</span><span class="boring">    type OperatorState = ();
-</span><span class="boring">
-</span><span class="boring">    fn handle_element(
-</span><span class="boring">        &amp;mut self,
-</span><span class="boring">        element: ArconElement&lt;Self::IN&gt;,
-</span><span class="boring">        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
-</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
-</span><span class="boring">        let current_time = ctx.current_time()?;
-</span><span class="boring">        let key = element.data.get_key();
-</span><span class="boring">        let time = current_time + 1000;
-</span><span class="boring">
-</span><span class="boring">        if let Err(err) = ctx.schedule_at(key, time, element.data.id) {
-</span><span class="boring">            error!(ctx.log(), &quot;Failed to schedule timer with err {}&quot;, err);
-</span><span class="boring">        }
-</span><span class="boring">
-</span><span class="boring">        ctx.output(element);
-</span><span class="boring">
-</span><span class="boring">        Ok(())
-</span><span class="boring">    }
-</span><span class="boring">
-</span><span class="boring">    fn handle_timeout(
-</span><span class="boring">        &amp;mut self,
-</span><span class="boring">        timeout: Self::TimerState,
-</span><span class="boring">        ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
-</span><span class="boring">    ) -&gt; OperatorResult&lt;()&gt; {
-</span><span class="boring">        info!(ctx.log(), &quot;Got a timer timeout for {:?}&quot;, timeout);
-</span><span class="boring">        Ok(())
-</span><span class="boring">    }
-</span><span class="boring">
-</span><span class="boring">    ignore_persist!();
-</span><span class="boring">
-</span><span class="boring">    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
-</span><span class="boring">        &amp;mut self.0
-</span><span class="boring">    }
-</span><span class="boring">}
-</span><span class="boring">
+</span>#[derive(Default)]
+pub struct TimerOperator(EmptyState);
+
+impl Operator for TimerOperator {
+    type IN = CustomEvent;
+    type OUT = CustomEvent;
+    type TimerState = u64;
+    type OperatorState = ();
+
+    fn handle_element(
+        &amp;mut self,
+        element: ArconElement&lt;Self::IN&gt;,
+        mut ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+    ) -&gt; OperatorResult&lt;()&gt; {
+        let current_time = ctx.current_time()?;
+        let key = element.data.get_key();
+        let time = current_time + 1000;
+
+        if let Err(err) = ctx.schedule_at(key, time, element.data.id) {
+            error!(ctx.log(), &quot;Failed to schedule timer with err {}&quot;, err);
+        }
+
+        ctx.output(element);
+
+        Ok(())
+    }
+
+    fn handle_timeout(
+        &amp;mut self,
+        timeout: Self::TimerState,
+        ctx: OperatorContext&lt;Self, impl Backend, impl ComponentDefinition&gt;,
+    ) -&gt; OperatorResult&lt;()&gt; {
+        info!(ctx.log(), &quot;Got a timer timeout for {:?}&quot;, timeout);
+        Ok(())
+    }
+
+    ignore_persist!();
+
+    fn state(&amp;mut self) -&gt; &amp;mut Self::OperatorState {
+        &amp;mut self.0
+    }
+}
+<span class="boring">
 </span><span class="boring">fn main() {
 </span><span class="boring">    let mut pipeline = Pipeline::default()
 </span><span class="boring">        .collection((0..10000000).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
@@ -967,6 +971,7 @@ per key.</p>
 </span><span class="boring">        &amp;mut self.0
 </span><span class="boring">    }
 </span><span class="boring">}
+</span><span class="boring">
 </span><span class="boring">#[derive(Default)]
 </span><span class="boring">pub struct TimerOperator(EmptyState);
 </span><span class="boring">
@@ -1071,10 +1076,33 @@ or adding your own <code>Source</code> implementation.</p>
 <li><a href="pipeline/source.html#creating-a-custom-source">Creating a custom Source</a></li>
 </ul>
 <h2><a class="header" href="#source-configuration" id="source-configuration">Source Configuration</a></h2>
-<p>Whether you are using a pre-defined source or your own. You will have access 
-to modify a <code>SourceConf</code> object through a closure.</p>
-<p>By default, <code>Time</code> in Arcon is based on event time. However if you want to configure
-it to Process time, see the <a href="pipeline/source.html#file">File</a> source example.</p>
+<p>Whether you are using a pre-defined source or your own. You will have the chance
+to configure a <code>SourceConf</code> object. Time in Arcon is by default based on event time.
+However, if you wish to swap to Process Time, you may do so by choosing <code>ArconTime::Process</code>.
+Note that if you are using <code>ArconTime::Event</code>, then a Timestamp Extractor also needs to be set. See down 
+below that shows an example of a Source that is working with the primitive <code>u64</code>.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::prelude::*;
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let mut pipeline = Pipeline::default()
+</span><span class="boring">        .collection((0..100).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
+</span>            conf.set_arcon_time(ArconTime::Event);
+            conf.set_timestamp_extractor(|x: &amp;u64| *x);
+<span class="boring">        })
+</span><span class="boring">        .operator(OperatorBuilder {
+</span><span class="boring">            constructor: Arc::new(|_| Filter::new(|x| *x &gt; 50)),
+</span><span class="boring">            conf: OperatorConf {
+</span><span class="boring">                parallelism_strategy: ParallelismStrategy::Static(1),
+</span><span class="boring">                ..Default::default()
+</span><span class="boring">            },
+</span><span class="boring">        })
+</span><span class="boring">        .to_console()
+</span><span class="boring">        .build();
+</span><span class="boring">
+</span><span class="boring">    pipeline.start();
+</span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">}
+</span></code></pre>
 <h2><a class="header" href="#pre-defined-sources" id="pre-defined-sources">Pre-defined Sources</a></h2>
 <h3><a class="header" href="#collection" id="collection">Collection</a></h3>
 <p>A Collection source is mostly for testing things out.
@@ -1089,6 +1117,10 @@ fn main() {
         })
         .operator(OperatorBuilder {
             constructor: Arc::new(|_| Filter::new(|x| *x &gt; 50)),
+            conf: Default::default(),
+        })
+        .operator(OperatorBuilder {
+            constructor: Arc::new(|_| Map::new(|x| x + 10)),
             conf: Default::default(),
         })
         .to_console()
@@ -1129,22 +1161,95 @@ is added to a dataflow graph which is then later used to build the final Pipelin
 <p>Streams are initially created from Arcon sources.</p>
 <p>The section is split into the follow sub-sections: </p>
 <ul>
-<li><a href="pipeline/stream.html#operator-configuration">Operator Configuration</a></li>
+<li><a href="pipeline/stream.html#operator-builder">Operator Builder</a></li>
 <li><a href="pipeline/stream.html#pre-defined-operators">Pre-defined Operators</a></li>
-<li><a href="pipeline/stream.html#adding-a-custom-operator">Adding Custom Operator</a></li>
-<li><a href="pipeline/stream.html#building-the-pipeline">Building the Pipeline</a></li>
+<li><a href="pipeline/stream.html#running-a-pipeline">Running a Pipeline</a></li>
+<li><a href="pipeline/stream.html#basic-pipeline">Basic Pipeline</a></li>
 </ul>
-<h2><a class="header" href="#operator-configuration" id="operator-configuration">Operator Configuration</a></h2>
-<p>To be added.</p>
+<h2><a class="header" href="#operator-builder" id="operator-builder">Operator Builder</a></h2>
+<p>An Operator Builder is used to define an Operator in Arcon pipeline. The builder requires two fields, a constructor and 
+configuration.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen"><span class="boring">use arcon::prelude::*;
+</span><span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    let mut pipeline = Pipeline::default()
+</span><span class="boring">        .collection((0..100).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
+</span><span class="boring">            conf.set_arcon_time(ArconTime::Event);
+</span><span class="boring">            conf.set_timestamp_extractor(|x: &amp;u64| *x);
+</span><span class="boring">        })
+</span>        .operator(OperatorBuilder {
+            constructor: Arc::new(|_| Filter::new(|x| *x &gt; 50)),
+            conf: OperatorConf {
+                parallelism_strategy: ParallelismStrategy::Static(1),
+                ..Default::default()
+            },
+        })
+<span class="boring">        .to_console()
+</span><span class="boring">        .build();
+</span><span class="boring">
+</span><span class="boring">    pipeline.start();
+</span><span class="boring">    pipeline.await_termination();
+</span><span class="boring">}
+</span></code></pre>
+<h3><a class="header" href="#operator-constructor" id="operator-constructor">Operator Constructor</a></h3>
+<p>The constructor of the builder has access to a <code>Backend</code> object. If your operator is stateless, you may simply
+ignore it as it has been done above. If the <code>rocksdb</code> feature is enabled, then Rocks will be used as the default <code>Backend</code>,
+otherwise Arcon defaults to <code>Sled</code>. If you wish to configure a specific Backend, then simply annotate it with <code>|backend: Arc&lt;Rocks&gt;|</code>.</p>
+<h3><a class="header" href="#operator-configuration" id="operator-configuration">Operator Configuration</a></h3>
+<p>Currently the configuration has two possible parameters. (1) ParallelismStrategy, where you may configure a static one <code>ParallelismStrategy::Static(usize)</code>
+or managed <code>ParallelismStrategy::Managed</code>. Note that only the Static strategy works for now; (2) StreamKind defines the type of Stream
+we are dealing with. Arcon is for now only focusing on Keyed streams and therefore the default StreamKind is <code>StreamKind::Keyed</code>.</p>
+<p>You may configure a default operator configuration through <code>conf: Default::default()</code>.</p>
 <h2><a class="header" href="#pre-defined-operators" id="pre-defined-operators">Pre-defined Operators</a></h2>
+<p>Arcon comes with a set of high-level function operators. All of the operators can either be stateless using 
+the <code>new</code> constructor or stateful through<code>stateful</code>.  In the latter, you will need to pass both the User-defined Function and
+an <code>ArconState</code> object.</p>
 <h3><a class="header" href="#map" id="map">Map</a></h3>
+<p>An Operator that maps <code>IN: ArconType</code> to <code>OUT: ArconType</code>.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen">Map::new(|x: u64| x + 10)
+</code></pre>
 <h3><a class="header" href="#mapinplace" id="mapinplace">MapInPlace</a></h3>
+<p>An Operator that maps in-place on <code>IN: ArconType</code> and outputs the same type.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen">MapInPlace::new(|x: &amp;mut u64| *x + 10)
+</code></pre>
 <h3><a class="header" href="#filter" id="filter">Filter</a></h3>
+<p>An Operator that filters away <code>IN: ArconType</code> based on a predicate.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen">Filter::new(|x: &amp;u64| *x &gt; 10)
+</code></pre>
 <h3><a class="header" href="#flatmap" id="flatmap">Flatmap</a></h3>
-<h2><a class="header" href="#adding-a-custom-operator" id="adding-a-custom-operator">Adding a custom Operator</a></h2>
-<p>To be added.</p>
-<h2><a class="header" href="#building-the-pipeline" id="building-the-pipeline">Building the pipeline</a></h2>
-<p>To be added.</p>
+<p>An Operator that accepts a single <code>IN: ArconType</code> and outputs N elements of <code>OUT: ArconType</code>.
+The expected output type of the function is an <code>IntoIterator</code> where each Item is of type <code>OUT</code>.</p>
+<pre><code class="language-rust edition2018 no_run noplaypen">Flatmap::new(|x: u64| (0..x))
+</code></pre>
+<h2><a class="header" href="#running-a-pipeline" id="running-a-pipeline">Running a Pipeline</a></h2>
+<p>Once you are done with adding transformations and want to build the pipeline, the <code>build()</code> function on a Stream type
+will construct the Dataflow components and return an <code>AssembledPipeline</code>.
+Arcon does not require any explicit sink. If you wish to debug the output of the last Operator, then see the <code>to_console()</code> function.</p>
+<p>Note that an <code>AssembledPipeline</code> does not start processing data until it has been started.</p>
+<h2><a class="header" href="#basic-pipeline" id="basic-pipeline">Basic Pipeline</a></h2>
+<pre><code class="language-rust edition2018 no_run noplaypen">use arcon::prelude::*;
+
+fn main() {
+    let mut pipeline = Pipeline::default()
+        .collection((0..100).collect::&lt;Vec&lt;u64&gt;&gt;(), |conf| {
+            conf.set_arcon_time(ArconTime::Event);
+            conf.set_timestamp_extractor(|x: &amp;u64| *x);
+        })
+        .operator(OperatorBuilder {
+            constructor: Arc::new(|_| Filter::new(|x| *x &gt; 50)),
+            conf: Default::default(),
+        })
+        .operator(OperatorBuilder {
+            constructor: Arc::new(|_| Map::new(|x| x + 10)),
+            conf: Default::default(),
+        })
+        .to_console()
+        .build();
+
+    pipeline.start();
+    pipeline.await_termination();
+}
+</code></pre>
 <h1><a class="header" href="#state-backends" id="state-backends">State Backends</a></h1>
 <p>Arcon’s state management features are implemented in the <code>arcon_state</code> crate. </p>
 <p>If no other backend feature has been turned on, then <a href="https://github.com/spacejam/sled">sled</a> is used as the default backend.
@@ -1499,9 +1604,9 @@ Once a Snapshot has been committed, it will be available for access outside the 
 </span><span class="boring">#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
 </span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 </span><span class="boring">pub struct Event {
-</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    #[prost(uint64)]
 </span><span class="boring">    pub id: u64,
-</span><span class="boring">    #[prost(float, tag = &quot;2&quot;)]
+</span><span class="boring">    #[prost(float)]
 </span><span class="boring">    pub data: f32,
 </span><span class="boring">}
 </span><span class="boring">
@@ -1522,8 +1627,7 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 }
 
 <span class="boring">
-</span><span class="boring">#[tokio::main]
-</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+</span><span class="boring">fn main() {
 </span><span class="boring">    let conf = ArconConf {
 </span><span class="boring">        epoch_interval: 2500,
 </span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
@@ -1550,7 +1654,9 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span><span class="boring">
+</span><span class="boring">    pipeline.watch(|epoch: u64, _: MyState&lt;Sled&gt;| {
+</span><span class="boring">        println!(&quot;Got state object for epoch {}&quot;, epoch);
+</span><span class="boring">    });
 </span><span class="boring">
 </span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
 </span><span class="boring">    // Create Kompact component to receive snapshots
@@ -1565,8 +1671,6 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">
-</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <h2><a class="header" href="#watching-from-a-thread" id="watching-from-a-thread">Watching from a thread</a></h2>
@@ -1580,9 +1684,9 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
 </span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 </span><span class="boring">pub struct Event {
-</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    #[prost(uint64)]
 </span><span class="boring">    pub id: u64,
-</span><span class="boring">    #[prost(float, tag = &quot;2&quot;)]
+</span><span class="boring">    #[prost(float)]
 </span><span class="boring">    pub data: f32,
 </span><span class="boring">}
 </span><span class="boring">
@@ -1603,8 +1707,7 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">
-</span><span class="boring">#[tokio::main]
-</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+</span><span class="boring">fn main() {
 </span><span class="boring">    let conf = ArconConf {
 </span><span class="boring">        epoch_interval: 2500,
 </span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
@@ -1631,7 +1734,9 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span>
+</span>    pipeline.watch(|epoch: u64, _: MyState&lt;Sled&gt;| {
+        println!(&quot;Got state object for epoch {}&quot;, epoch);
+    });
 <span class="boring">
 </span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
 </span><span class="boring">    // Create Kompact component to receive snapshots
@@ -1646,8 +1751,6 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">
-</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <h2><a class="header" href="#watching-from-a-kompact-component" id="watching-from-a-kompact-component">Watching from a Kompact component</a></h2>
@@ -1707,9 +1810,9 @@ The snippet below shows how an example of how to do this.</p>
 </span><span class="boring">#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
 </span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 </span><span class="boring">pub struct Event {
-</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    #[prost(uint64)]
 </span><span class="boring">    pub id: u64,
-</span><span class="boring">    #[prost(float, tag = &quot;2&quot;)]
+</span><span class="boring">    #[prost(float)]
 </span><span class="boring">    pub data: f32,
 </span><span class="boring">}
 </span><span class="boring">
@@ -1730,8 +1833,7 @@ The snippet below shows how an example of how to do this.</p>
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">
-</span><span class="boring">#[tokio::main]
-</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+</span><span class="boring">fn main() {
 </span><span class="boring">    let conf = ArconConf {
 </span><span class="boring">        epoch_interval: 2500,
 </span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
@@ -1758,7 +1860,9 @@ The snippet below shows how an example of how to do this.</p>
 </span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span><span class="boring">
+</span><span class="boring">    pipeline.watch(|epoch: u64, _: MyState&lt;Sled&gt;| {
+</span><span class="boring">        println!(&quot;Got state object for epoch {}&quot;, epoch);
+</span><span class="boring">    });
 </span><span class="boring">
 </span>    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
     // Create Kompact component to receive snapshots
@@ -1773,12 +1877,24 @@ The snippet below shows how an example of how to do this.</p>
 <span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">
-</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <h2><a class="header" href="#executing-sql-queries" id="executing-sql-queries">Executing SQL queries</a></h2>
 <p>Feature not implemented yet!</p>
+<h1><a class="header" href="#roadmap" id="roadmap">Roadmap</a></h1>
+<h2><a class="header" href="#030" id="030">0.3.0</a></h2>
+<ul>
+<li>Arrow Support</li>
+<li>SQL + Arrow Flight Capabilities on Consistent Snapshots</li>
+<li>Kafka Support</li>
+<li>Stabilise API</li>
+<li>Stabilise Local Execution</li>
+</ul>
+<h2><a class="header" href="#040" id="040">0.4.0</a></h2>
+<ul>
+<li>Distributed Execution</li>
+<li>Distributed SQL + Arrow Flight Capabilities on Consistent Snapshots</li>
+</ul>
 <h1><a class="header" href="#project-info" id="project-info">Project Info</a></h1>
 <p>Arcon is a research project developed at the KTH Royal Institute of Technology and at RISE Research Institutes of Sweden in Stockholm, Sweden.</p>
 <h2><a class="header" href="#related-projects" id="related-projects">Related Projects</a></h2>

@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../foreword.html">Foreword</a></li><li class="chapter-item expanded affix "><a href="../getting-started.html">Getting Started</a></li><li class="chapter-item expanded "><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../introduction/architecture.html"><strong aria-hidden="true">1.1.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../introduction/data_format.html"><strong aria-hidden="true">1.2.</strong> Data Format</a></li><li class="chapter-item expanded "><a href="../introduction/state.html"><strong aria-hidden="true">1.3.</strong> State Management</a></li><li class="chapter-item expanded "><a href="../introduction/operators.html"><strong aria-hidden="true">1.4.</strong> Operators</a></li></ol></li><li class="chapter-item expanded "><a href="../pipeline/index.html"><strong aria-hidden="true">2.</strong> Pipeline</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pipeline/configuration.html"><strong aria-hidden="true">2.1.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../pipeline/source.html"><strong aria-hidden="true">2.2.</strong> Sources</a></li><li class="chapter-item expanded "><a href="../pipeline/stream.html"><strong aria-hidden="true">2.3.</strong> Stream API</a></li><li class="chapter-item expanded "><a href="../pipeline/backends.html"><strong aria-hidden="true">2.4.</strong> State Backends</a></li><li class="chapter-item expanded "><a href="../pipeline/indexes.html"><strong aria-hidden="true">2.5.</strong> State Indexes</a></li><li class="chapter-item expanded "><a href="../pipeline/state.html" class="active"><strong aria-hidden="true">2.6.</strong> State Access</a></li></ol></li><li class="chapter-item expanded "><a href="../project_info.html"><strong aria-hidden="true">3.</strong> Project Info</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../foreword.html">Foreword</a></li><li class="chapter-item expanded affix "><a href="../getting-started.html">Getting Started</a></li><li class="chapter-item expanded "><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../introduction/architecture.html"><strong aria-hidden="true">1.1.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../introduction/data_format.html"><strong aria-hidden="true">1.2.</strong> Data Format</a></li><li class="chapter-item expanded "><a href="../introduction/state.html"><strong aria-hidden="true">1.3.</strong> State Management</a></li><li class="chapter-item expanded "><a href="../introduction/operators.html"><strong aria-hidden="true">1.4.</strong> Operators</a></li></ol></li><li class="chapter-item expanded "><a href="../pipeline/index.html"><strong aria-hidden="true">2.</strong> Pipeline</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pipeline/configuration.html"><strong aria-hidden="true">2.1.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../pipeline/source.html"><strong aria-hidden="true">2.2.</strong> Sources</a></li><li class="chapter-item expanded "><a href="../pipeline/stream.html"><strong aria-hidden="true">2.3.</strong> Stream API</a></li><li class="chapter-item expanded "><a href="../pipeline/backends.html"><strong aria-hidden="true">2.4.</strong> State Backends</a></li><li class="chapter-item expanded "><a href="../pipeline/indexes.html"><strong aria-hidden="true">2.5.</strong> State Indexes</a></li><li class="chapter-item expanded "><a href="../pipeline/state.html" class="active"><strong aria-hidden="true">2.6.</strong> State Access</a></li></ol></li><li class="chapter-item expanded "><a href="../roadmap.html"><strong aria-hidden="true">3.</strong> Roadmap</a></li><li class="chapter-item expanded "><a href="../project_info.html"><strong aria-hidden="true">4.</strong> Project Info</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -183,9 +183,9 @@ Once a Snapshot has been committed, it will be available for access outside the 
 </span><span class="boring">#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
 </span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 </span><span class="boring">pub struct Event {
-</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    #[prost(uint64)]
 </span><span class="boring">    pub id: u64,
-</span><span class="boring">    #[prost(float, tag = &quot;2&quot;)]
+</span><span class="boring">    #[prost(float)]
 </span><span class="boring">    pub data: f32,
 </span><span class="boring">}
 </span><span class="boring">
@@ -206,8 +206,7 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 }
 
 <span class="boring">
-</span><span class="boring">#[tokio::main]
-</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+</span><span class="boring">fn main() {
 </span><span class="boring">    let conf = ArconConf {
 </span><span class="boring">        epoch_interval: 2500,
 </span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
@@ -234,7 +233,9 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span><span class="boring">
+</span><span class="boring">    pipeline.watch(|epoch: u64, _: MyState&lt;Sled&gt;| {
+</span><span class="boring">        println!(&quot;Got state object for epoch {}&quot;, epoch);
+</span><span class="boring">    });
 </span><span class="boring">
 </span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
 </span><span class="boring">    // Create Kompact component to receive snapshots
@@ -249,8 +250,6 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">
-</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <h2><a class="header" href="#watching-from-a-thread" id="watching-from-a-thread">Watching from a thread</a></h2>
@@ -264,9 +263,9 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
 </span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 </span><span class="boring">pub struct Event {
-</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    #[prost(uint64)]
 </span><span class="boring">    pub id: u64,
-</span><span class="boring">    #[prost(float, tag = &quot;2&quot;)]
+</span><span class="boring">    #[prost(float)]
 </span><span class="boring">    pub data: f32,
 </span><span class="boring">}
 </span><span class="boring">
@@ -287,8 +286,7 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">
-</span><span class="boring">#[tokio::main]
-</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+</span><span class="boring">fn main() {
 </span><span class="boring">    let conf = ArconConf {
 </span><span class="boring">        epoch_interval: 2500,
 </span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
@@ -315,7 +313,9 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span>
+</span>    pipeline.watch(|epoch: u64, _: MyState&lt;Sled&gt;| {
+        println!(&quot;Got state object for epoch {}&quot;, epoch);
+    });
 <span class="boring">
 </span><span class="boring">    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
 </span><span class="boring">    // Create Kompact component to receive snapshots
@@ -330,8 +330,6 @@ impl&lt;B: Backend&gt; StateConstructor for MyState&lt;B&gt; {
 </span><span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">
-</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <h2><a class="header" href="#watching-from-a-kompact-component" id="watching-from-a-kompact-component">Watching from a Kompact component</a></h2>
@@ -391,9 +389,9 @@ The snippet below shows how an example of how to do this.</p>
 </span><span class="boring">#[derive(Arcon, Arrow, prost::Message, Copy, Clone)]
 </span><span class="boring">#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1, keys = &quot;id&quot;)]
 </span><span class="boring">pub struct Event {
-</span><span class="boring">    #[prost(uint64, tag = &quot;1&quot;)]
+</span><span class="boring">    #[prost(uint64)]
 </span><span class="boring">    pub id: u64,
-</span><span class="boring">    #[prost(float, tag = &quot;2&quot;)]
+</span><span class="boring">    #[prost(float)]
 </span><span class="boring">    pub data: f32,
 </span><span class="boring">}
 </span><span class="boring">
@@ -414,8 +412,7 @@ The snippet below shows how an example of how to do this.</p>
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">
-</span><span class="boring">#[tokio::main]
-</span><span class="boring">async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+</span><span class="boring">fn main() {
 </span><span class="boring">    let conf = ArconConf {
 </span><span class="boring">        epoch_interval: 2500,
 </span><span class="boring">        ctrl_system_host: Some(&quot;127.0.0.1:2000&quot;.to_string()),
@@ -442,7 +439,9 @@ The snippet below shows how an example of how to do this.</p>
 </span><span class="boring">        })
 </span><span class="boring">        .build();
 </span><span class="boring">
-</span><span class="boring">
+</span><span class="boring">    pipeline.watch(|epoch: u64, _: MyState&lt;Sled&gt;| {
+</span><span class="boring">        println!(&quot;Got state object for epoch {}&quot;, epoch);
+</span><span class="boring">    });
 </span><span class="boring">
 </span>    let kompact_system = KompactConfig::default().build().expect(&quot;KompactSystem&quot;);
     // Create Kompact component to receive snapshots
@@ -457,8 +456,6 @@ The snippet below shows how an example of how to do this.</p>
 <span class="boring">
 </span><span class="boring">    pipeline.start();
 </span><span class="boring">    pipeline.await_termination();
-</span><span class="boring">
-</span><span class="boring">    Ok(())
 </span><span class="boring">}
 </span></code></pre>
 <h2><a class="header" href="#executing-sql-queries" id="executing-sql-queries">Executing SQL queries</a></h2>
@@ -475,7 +472,7 @@ The snippet below shows how an example of how to do this.</p>
                         
 
                         
-                            <a rel="next" href="../project_info.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../roadmap.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -493,7 +490,7 @@ The snippet below shows how an example of how to do this.</p>
                 
 
                 
-                    <a rel="next" href="../project_info.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../roadmap.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
