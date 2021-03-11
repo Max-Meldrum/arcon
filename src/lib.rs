@@ -97,6 +97,8 @@ mod test;
 /// Internal Arcon Utilities
 mod util;
 
+mod tss;
+
 /// A module containing test utilities such as a global Arcon Allocator
 #[cfg(test)]
 pub mod test_utils {

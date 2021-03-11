@@ -1,0 +1,30 @@
+
+syntax = "proto3";
+
+package arcon_tss;
+
+message SelectionExpr {
+  oneof expr {
+    WhenExpr when_expr = 1;
+    LatestExpr latest_expr = 2;
+    NextExpr next_expr = 3;
+  }
+}
+
+message WhenExpr {
+  oneof expr {
+    TimeGtExpr time_gt_expr = 1;
+    TimeGteExpr time_gte_expr = 2;
+  }
+}
+
+message TimeGtExpr {
+  uint64 timestamp = 1;
+}
+
+message TimeGteExpr {
+  uint64 timestamp = 1;
+}
+
+message LatestExpr {}
+message NextExpr {}
